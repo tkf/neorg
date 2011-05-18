@@ -15,3 +15,7 @@ NEOrg is a wiki to organize your experimental data.
 __author__  = "Takafumi Arakaki"
 __version__ = "0.0.1"
 __license__ = "MIT License"
+
+
+NEORG_DIR = '.neorg'
+CONFIG_FILE = 'conf.py'

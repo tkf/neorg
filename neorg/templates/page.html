@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block body %}
+  <p>
+    {{ pagehtml|safe }}
+  </p>
+  <p><a href="{{ url_for('edit', pagepath=pagepath) }}">Edit</a></p>
+{% endblock %}
