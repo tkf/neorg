@@ -42,12 +42,26 @@ def after_request(response):
 @app.route('/_save', defaults={'pagepath': ''}, methods=['POST'])
 @app.route('/<path:pagepath>/_save', methods=['POST'])
 def save(pagepath):
-    g.db.execute(
-        'insert or replace into pages (pagepath, pagetext) values (?, ?)',
-        [pagepath, request.form['pagetext']])
-    g.db.commit()
-    flash('Saved!')
-    return redirect(url_for("page", pagepath=pagepath))
+    if request.form.get('save') == 'Save':
+        g.db.execute(
+            'insert or replace into pages (pagepath, pagetext) values (?, ?)',
+            [pagepath, request.form['pagetext']])
+        g.db.commit()
+        flash('Saved!')
+        return redirect(url_for("page", pagepath=pagepath))
+    elif request.form.get('preview') == 'Preview':
+        pagetext = request.form['pagetext']
+        pagehtml = gene_html(pagetext)
+        flash('Previewing... Not yet saved!')
+        return render_template(
+            "edit.html",
+            title='Preview - ' + (pagepath or ROOT_TITLE),
+            pagepath=pagepath,
+            pagetext=pagetext,
+            pagehtml=pagehtml)
+    elif request.form.get('cancel') == 'Cancel':
+        flash('Discarded changes!')
+        return redirect(url_for("page", pagepath=pagepath))
 
 
 @app.route('/_edit', defaults={'pagepath': ''})
@@ -58,6 +72,7 @@ def edit(pagepath):
     return render_template("edit.html",
                            title='Edit - ' + (pagepath or ROOT_TITLE),
                            pagepath=pagepath,
+                           pagehtml=gene_html(pagetext[0]) if pagetext else '',
                            pagetext=pagetext[0] if pagetext else '')
 
 
