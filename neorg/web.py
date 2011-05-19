@@ -3,15 +3,11 @@ from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 from flask import (Flask, request, g, redirect, url_for,
                    render_template, flash, send_from_directory)
-from docutils.core import publish_parts
 
 from neorg.config import DefaultConfig
+from neorg.wiki import gene_html
 
 ROOT_TITLE = 'Organize your experiments and find out more!'
-
-# disable docutils security hazards:
-# http://docutils.sourceforge.net/docs/howto/security.html
-SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 
 app = Flask('neorg')
 app.config.from_object(DefaultConfig)
@@ -71,9 +67,7 @@ def page(pagepath):
     pagetext = g.db.execute('select pagetext from pages where pagepath = ?',
                         [pagepath]).fetchone()
     if pagetext:
-        pagehtml = publish_parts(
-            pagetext[0], writer_name='html',
-            settings_overrides=SAFE_DOCUTILS)['html_body']
+        pagehtml = gene_html(pagetext[0])
         return render_template("page.html",
                                title=pagepath or ROOT_TITLE,
                                pagepath=pagepath,
