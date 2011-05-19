@@ -158,6 +158,13 @@ def get_suboptions(options, prefix):
     return transpose_dict(suboptions)
 
 
+def glob_list(pathlist, sorted=sorted):
+    globed = []
+    for pathname in pathlist:
+        globed += sorted(glob(pathname))
+    return globed
+
+
 class TableDataAndImage(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -185,7 +192,7 @@ class TableDataAndImage(Directive):
     _dataurlroot = None  # needs override
 
     required_arguments = 1
-    optional_arguments = 0
+    optional_arguments = 10000  # nobody wants to put args more than this
     final_argument_whitespace = True
     option_spec = {'data': lambda x: x.split(),
                    'image': lambda x: x.split(),
@@ -195,8 +202,9 @@ class TableDataAndImage(Directive):
 
 
     def run(self):
-        datapath = path.join(self._datadir,
-                             directives.uri(self.arguments[0]))
+        datapathlist = glob_list(
+            [path.join(self._datadir, directives.uri(arg))
+             for arg in self.arguments])
 
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])
@@ -204,7 +212,7 @@ class TableDataAndImage(Directive):
         colwidths = self.options.get('widths')
 
         rowdata = []
-        for fullpath in glob(datapath):
+        for fullpath in datapathlist:
             relpath = path.relpath(fullpath, self._datadir)
             parenturl = path.join(self._dataurlroot,
                                   path.dirname(relpath))
