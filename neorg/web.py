@@ -39,56 +39,56 @@ def after_request(response):
     return response
 
 
-@app.route('/_save', defaults={'pagepath': ''}, methods=['POST'])
-@app.route('/<path:pagepath>/_save', methods=['POST'])
-def save(pagepath):
+@app.route('/_save', defaults={'page_path': ''}, methods=['POST'])
+@app.route('/<path:page_path>/_save', methods=['POST'])
+def save(page_path):
     if request.form.get('save') == 'Save':
         g.db.execute(
-            'insert or replace into pages (pagepath, pagetext) values (?, ?)',
-            [pagepath, request.form['pagetext']])
+            'insert or replace into pages (page_path, page_text) values (?, ?)',
+            [page_path, request.form['page_text']])
         g.db.commit()
         flash('Saved!')
-        return redirect(url_for("page", pagepath=pagepath))
+        return redirect(url_for("page", page_path=page_path))
     elif request.form.get('preview') == 'Preview':
-        pagetext = request.form['pagetext']
-        pagehtml = gene_html(pagetext)
+        page_text = request.form['page_text']
+        page_html = gene_html(page_text)
         flash('Previewing... Not yet saved!')
         return render_template(
             "edit.html",
-            title='Preview - ' + (pagepath or ROOT_TITLE),
-            pagepath=pagepath,
-            pagetext=pagetext,
-            pagehtml=pagehtml)
+            title='Preview - ' + (page_path or ROOT_TITLE),
+            page_path=page_path,
+            page_text=page_text,
+            page_html=page_html)
     elif request.form.get('cancel') == 'Cancel':
         flash('Discarded changes!')
-        return redirect(url_for("page", pagepath=pagepath))
+        return redirect(url_for("page", page_path=page_path))
 
 
-@app.route('/_edit', defaults={'pagepath': ''})
-@app.route('/<path:pagepath>/_edit')
-def edit(pagepath):
-    pagetext = g.db.execute('select pagetext from pages where pagepath = ?',
-                            [pagepath]).fetchone()
+@app.route('/_edit', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_edit')
+def edit(page_path):
+    page_text = g.db.execute('select page_text from pages where page_path = ?',
+                            [page_path]).fetchone()
     return render_template("edit.html",
-                           title='Edit - ' + (pagepath or ROOT_TITLE),
-                           pagepath=pagepath,
-                           pagehtml=gene_html(pagetext[0]) if pagetext else '',
-                           pagetext=pagetext[0] if pagetext else '')
+                           title='Edit - ' + (page_path or ROOT_TITLE),
+                           page_path=page_path,
+                           page_html=gene_html(page_text[0]) if page_text else '',
+                           page_text=page_text[0] if page_text else '')
 
 
-@app.route('/', defaults={'pagepath': ''})
-@app.route('/<path:pagepath>/')
-def page(pagepath):
-    pagetext = g.db.execute('select pagetext from pages where pagepath = ?',
-                        [pagepath]).fetchone()
-    if pagetext:
-        pagehtml = gene_html(pagetext[0])
+@app.route('/', defaults={'page_path': ''})
+@app.route('/<path:page_path>/')
+def page(page_path):
+    page_text = g.db.execute('select page_text from pages where page_path = ?',
+                        [page_path]).fetchone()
+    if page_text:
+        page_html = gene_html(page_text[0])
         return render_template("page.html",
-                               title=pagepath or ROOT_TITLE,
-                               pagepath=pagepath,
-                               pagehtml=pagehtml)
+                               title=page_path or ROOT_TITLE,
+                               page_path=page_path,
+                               page_html=page_html)
     else:
-        return redirect(url_for('edit', pagepath=pagepath))
+        return redirect(url_for('edit', page_path=page_path))
 
 
 @app.route('/_data/<path:filepath>')

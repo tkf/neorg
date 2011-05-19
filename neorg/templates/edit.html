@@ -1,8 +1,8 @@
 {% extends "page.html" %}
 {% block body %}
-  <form action="{{ url_for('save', pagepath=pagepath) }}"
+  <form action="{{ url_for('save', page_path=page_path) }}"
         method="post" class="add-entry">
-    <textarea name="pagetext" rows="20" cols="80">{{ pagetext }}</textarea>
+    <textarea name="page_text" rows="20" cols="80">{{ page_text }}</textarea>
     <input type="submit" name="save" value="Save" />
     <input type="submit" name="preview" value="Preview" />
     <input type="submit" name="cancel" value="Cancel" />

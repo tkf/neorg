@@ -1,5 +1,5 @@
 drop table if exists pages;
 create table pages (
-  pagepath string primary key,
-  pagetext string not null
+  page_path string primary key,
+  page_text string not null
 );
