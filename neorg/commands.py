@@ -1,6 +1,7 @@
 def serve(port, debug=None, browser=None):
     from neorg.web import app
     from neorg.config import load_config
+    from neorg.wiki import register_neorg_directives
     load_config(app)
     if debug is not None:
         app.config['DEBUG'] = debug
@@ -9,6 +10,7 @@ def serve(port, debug=None, browser=None):
         from webbrowser import open_new_tab
         Timer(1, open_new_tab,
               args=['http://localhost:%d' % port]).start()
+    register_neorg_directives(app.config['DATADIRPATH'], '_data')
     app.run(port=port)
 
 

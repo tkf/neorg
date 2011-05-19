@@ -2,9 +2,17 @@
 Convert page text using docutils
 """
 
+from docutils.parsers.rst import directives, Directive
+from docutils.parsers.rst.directives.images import Image
 from docutils.readers import standalone
 from docutils.transforms import Transform
 from docutils import nodes
+
+from os import path
+from glob import glob
+
+from neorg.data import load_any, get_nested
+
 
 # disable docutils security hazards:
 # http://docutils.sourceforge.net/docs/howto/security.html
@@ -35,6 +43,160 @@ class Reader(standalone.Reader):
         return standalone.Reader.get_transforms(self) + [
             AddPageLinks,
             ]
+
+
+def gene_paragraph(rawtext):
+    paragraph = nodes.paragraph()
+    paragraph += nodes.Text(rawtext)
+    return paragraph
+
+
+def gene_entry(node_or_any):
+    entry = nodes.entry()
+    if isinstance(node_or_any, nodes.Node):
+        entry += node_or_any
+    else:
+        entry += gene_paragraph(str(node_or_any))
+    return entry
+
+
+def gene_table(list2d, title=None):
+    """
+    Generate table node from 2D list
+    """
+    nrow = len(list2d)
+    ncol = len(list2d[0])
+
+    table = nodes.table()
+    tgroup = nodes.tgroup(cols=ncol)
+    tbody = nodes.tbody()
+    colspecs = [nodes.colspec(colwidth=1) for dummy in range(ncol)]
+    rows = [nodes.row() for dummy in range(nrow)]
+
+    table += tgroup
+    if title:
+        table += nodes.title(title, title)
+    tgroup += colspecs
+    tgroup += tbody
+    tbody += rows
+
+    for (row, list1d) in zip(rows, list2d):
+        row += [gene_entry(elem) for elem in list1d]
+
+    return table
+
+
+def _adapt_option_spec_from_image():
+    """
+    Adapt option_spec from image directive
+    """
+    def wrap(key, oldparse):
+        def parse(arg):
+            valdict = {}
+            for kv in arg.split(','):
+                (k, v) = [s.strip() for s in kv.split(':', 1)]
+                valdict[int(k)] = oldparse(v)
+            return valdict
+        return parse
+
+    for (key, oldparse) in Image.option_spec.iteritems():
+        yield ('image-%s' % key, wrap(key, oldparse))
+
+
+def transpose_dict(dict_of_dict):
+    """
+    Transpose dictionary-of-dictionary
+
+    >>> dod = {'a': {0: 'a0', 2: 'a2'}, 'b': {0: 'b0', 1: 'b1'}}
+    >>> tr = transpose_dict(dod)
+    >>> sorted(tr[0])
+    ['a', 'b']
+    >>> sorted(tr[1])
+    ['b']
+    >>> tr[2]['a']
+    'a2'
+
+    """
+    subkeyset = set()
+    for (key, subdict) in dict_of_dict.iteritems():
+        subkeyset.update(subdict)
+    transposed = {}
+    for subkey in subkeyset:
+        transposed[subkey] = dict(
+            (key, dict_of_dict[key][subkey]) for key in dict_of_dict
+            if subkey in dict_of_dict[key]
+            )
+    return transposed
+
+
+def get_suboptions(options, prefix):
+    prefixlen = len(prefix)
+    suboptions = {}
+    for (key, val) in options.iteritems():
+        if key.startswith(prefix):
+            suboptions[key[prefixlen:]] = val
+    return transpose_dict(suboptions)
+
+
+class TableDataAndImage(Directive):
+    """
+    Search data and show matched data and corresponding image(s)
+
+    ::
+
+        .. table-data-and-image:: my/experiment/2011-02-*/data.json
+           :data: x y result sub.result
+           :image: x_y_plot.png x_result_plot.png
+
+    image-{OPTION} : integer:{VAL} [, integer:{VAL} ...]
+        `integer` is the index of the image.
+        `{VAL}` specifies the value of the `{OPTION}` of the
+        image directive.
+
+    """
+
+    _dirc_name = 'table-data-and-image'
+    _datadir = None  # needs override
+    _dataurlroot = None  # needs override
+
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = True
+    option_spec = {'data': lambda x: x.split(),
+                   'image': lambda x: x.split()}
+    option_spec.update(_adapt_option_spec_from_image())
+    has_content = False
+
+
+    def run(self):
+        datapath = path.join(self._datadir,
+                             directives.uri(self.arguments[0]))
+
+        data_keys = self.options.get('data', [])
+        image_names = self.options.get('image', [])
+        image_options = get_suboptions(self.options, 'image-')
+
+        rowdata = []
+        for fullpath in glob(datapath):
+            relpath = path.relpath(fullpath, self._datadir)
+            parenturl = path.join(self._dataurlroot,
+                                  path.dirname(relpath))
+            data = load_any(fullpath)
+            keyval = [(key, get_nested(data, key)) for key in data_keys]
+            subtable = gene_table(keyval, relpath)
+            images = [
+                nodes.image(uri=path.join(parenturl, name),
+                            **image_options.get(i, {}))
+                for (i, name) in enumerate(image_names)]
+            rowdata.append([subtable] + images)
+        return [gene_table(rowdata)]
+
+
+def register_neorg_directives(datadir, dataurlroot):
+    for cls in [TableDataAndImage]:
+        cls._datadir = datadir
+        cls._dataurlroot = dataurlroot
+        directives.register_directive(cls._dirc_name, cls)
 
 
 def gene_html(text):
