@@ -74,6 +74,18 @@ h1, h2 {
     height: 100%;
 }
 
+.contents table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.contents table,
+.contents th,
+.contents td  {
+    border: 1px solid #8CBF8C;
+}
+
+
 .flash {
     background: #CEE5F5;
     border: 1px solid #AACBE2;

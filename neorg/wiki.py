@@ -6,7 +6,8 @@ from docutils.parsers.rst import directives, Directive
 from docutils.parsers.rst.directives.images import Image
 from docutils.readers import standalone
 from docutils.transforms import Transform
-from docutils import nodes
+from docutils.writers import html4css1
+from docutils import nodes, writers
 
 from os import path
 from glob import glob
@@ -43,6 +44,23 @@ class Reader(standalone.Reader):
         return standalone.Reader.get_transforms(self) + [
             AddPageLinks,
             ]
+
+
+class Writer(html4css1.Writer):
+
+    def __init__(self):
+        writers.Writer.__init__(self)
+        self.translator_class = HTMLTranslator
+
+
+class HTMLTranslator(html4css1.HTMLTranslator):
+
+    def visit_table(self, node):
+        classes = ' '.join(['docutils', self.settings.table_style]).strip()
+        self.body.append(
+            # in html4css1.HTMLTranslator, ``border="1"`` is hard-corded!
+            self.starttag(node, 'table', CLASS=classes))
+
 
 
 def gene_paragraph(rawtext):
@@ -205,6 +223,6 @@ def gene_html(text):
     from docutils.core import publish_parts
     return publish_parts(
         text,
-        writer_name='html',
+        writer=Writer(),
         reader=Reader(),
         settings_overrides=SAFE_DOCUTILS)['html_body']
