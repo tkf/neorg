@@ -27,6 +27,10 @@ def magicwords(dirpath):
         }
 
 
+def expandall(path):
+    return os.path.expandvars(os.path.expanduser(path))
+
+
 def load_config(app, dirpath=None):
     if dirpath is None:
         dirpath = '.'
@@ -34,8 +38,8 @@ def load_config(app, dirpath=None):
     app.config.from_pyfile(confpath(dirpath))
     magic = magicwords(dirpath)
     app.config.update(
-        DATABASE = app.config['DATABASE'] % magic,
-        DATADIRPATH = app.config['DATADIRPATH'] % magic,
+        DATABASE = expandall(app.config['DATABASE'] % magic),
+        DATADIRPATH = expandall(app.config['DATADIRPATH'] % magic),
         )
 
 
