@@ -1,15 +1,33 @@
-<!doctype html>
-<title>{{ title }} | NEOrg</title>
-<link rel=stylesheet type=text/css
-      href="{{ url_for('static', filename='style.css') }}">
-<link rel="shortcut icon"
-      href="{{ url_for('static', filename='favicon.ico') }}">
-<div class=page>
-  <div class=pagepath>{{ pagepath }}</div>
-  <div class=contents>
-  {% for message in get_flashed_messages() %}
-    <div class=flash>{{ message }}</div>
-  {% endfor %}
-  {% block body %}{% endblock %}
-  </div>
-</div>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title>{{ title }} | NEOrg</title>
+    <link rel="stylesheet type=text/css"
+          href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="shortcut icon"
+          href="{{ url_for('static', filename='favicon.ico') }}" />
+  </head>
+  <body>
+    <div class="page">
+      {% macro menu() %}
+      <div class="page-menu">
+        <div class="page-path">/{{ pagepath }}</div>
+        <div class="page-actions">
+          <a href="{{ url_for('edit', pagepath=pagepath) }}">Edit</a>
+        </div>
+        <div style="clear: both;"> </div>
+      </div>
+      {% endmacro %}
+      {{ menu() }}
+      <div class="contents">
+        {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% block body %}{% endblock %}
+      </div>
+      {{ menu() }}
+    </div>
+  </body>
+</html>

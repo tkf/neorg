@@ -11,11 +11,15 @@ a {
     color: #377BA8;
 }
 
-.pagepath {
+.page-path {
     color: #155315;
-    border-bottom: #8CBF8C 1px solid;
-    font-size: 100%;
+    font-size: 120%;
     font-family: monospace;
+    float: left;
+}
+
+.page-actions {
+    float: right;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -57,8 +61,10 @@ h1, h2 {
 .contents {
     background: white;
     font-size: 0.8em;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
     padding: 0.8em;
+    border-bottom: #8CBF8C 1px solid;
+    border-top: #8CBF8C 1px solid;
 }
 
 .contents textarea {

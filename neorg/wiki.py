@@ -73,9 +73,9 @@ def gene_table(list2d, title=None):
     colspecs = [nodes.colspec(colwidth=1) for dummy in range(ncol)]
     rows = [nodes.row() for dummy in range(nrow)]
 
-    table += tgroup
     if title:
         table += nodes.title(title, title)
+    table += tgroup
     tgroup += colspecs
     tgroup += tbody
     tbody += rows
