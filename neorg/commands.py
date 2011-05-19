@@ -10,7 +10,7 @@ def serve(port, debug=None, browser=None):
         from webbrowser import open_new_tab
         Timer(1, open_new_tab,
               args=['http://localhost:%d' % port]).start()
-    register_neorg_directives(app.config['DATADIRPATH'], '_data')
+    register_neorg_directives(app.config['DATADIRPATH'], '/_data')
     app.run(port=port)
 
 
