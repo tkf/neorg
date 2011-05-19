@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+  <div>
+    <h1>History of {{ page_path }}</h1>
+    <ul>
+      <li>
+        <a href="{{ url_for('page', page_path=page_path) }}">
+          Newest
+        </a>
+      </li>
+      {% for page in page_history %}
+      <li>
+        <a href="{{ url_for('old', page_path=page_path,
+                            history_id=page.history_id) }}">
+          {{ page.updated }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

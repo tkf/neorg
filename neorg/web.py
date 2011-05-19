@@ -43,8 +43,17 @@ def after_request(response):
 @app.route('/<path:page_path>/_save', methods=['POST'])
 def save(page_path):
     if request.form.get('save') == 'Save':
+        page_text_old = g.db.execute(
+            'select page_text from pages where page_path = ?',
+            [page_path]).fetchone()
+        if page_text_old and page_text_old[0] == request.form['page_text']:
+            flash('No change was found.')
+            return redirect(url_for("page", page_path=page_path))
         g.db.execute(
             'insert or replace into pages (page_path, page_text) values (?, ?)',
+            [page_path, request.form['page_text']])
+        g.db.execute(
+            'insert into page_history (page_path, page_text) values (?, ?)',
             [page_path, request.form['page_text']])
         g.db.commit()
         flash('Saved!')
@@ -67,8 +76,9 @@ def save(page_path):
 @app.route('/_edit', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_edit')
 def edit(page_path):
-    page_text = g.db.execute('select page_text from pages where page_path = ?',
-                            [page_path]).fetchone()
+    page_text = g.db.execute(
+        'select page_text from pages where page_path = ?',
+        [page_path]).fetchone()
     return render_template("edit.html",
                            title='Edit - ' + (page_path or ROOT_TITLE),
                            page_path=page_path,
@@ -79,8 +89,9 @@ def edit(page_path):
 @app.route('/', defaults={'page_path': ''})
 @app.route('/<path:page_path>/')
 def page(page_path):
-    page_text = g.db.execute('select page_text from pages where page_path = ?',
-                        [page_path]).fetchone()
+    page_text = g.db.execute(
+        'select page_text from pages where page_path = ?',
+        [page_path]).fetchone()
     if page_text:
         page_html = gene_html(page_text[0])
         return render_template("page.html",
@@ -89,6 +100,35 @@ def page(page_path):
                                page_html=page_html)
     else:
         return redirect(url_for('edit', page_path=page_path))
+
+
+@app.route('/_history', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_history')
+def history(page_path):
+    page_history_list = g.db.execute(
+        'select history_id, page_text, updated '
+        'from page_history where page_path = ?',
+        [page_path]).fetchall()
+    page_history_keys = ('history_id', 'page_text', 'updated')
+    page_history = [dict(zip(page_history_keys, row))
+                    for row in reversed(page_history_list)]
+    return render_template("history.html",
+                           title='History - ' + (page_path or ROOT_TITLE),
+                           page_path=page_path,
+                           page_history=page_history)
+
+
+@app.route('/_old/<int:history_id>', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_old/<int:history_id>')
+def old(page_path, history_id):
+    page_text = g.db.execute(
+        'select page_text from page_history where history_id = ?',
+        [history_id]).fetchone()
+    page_html = gene_html(page_text[0])
+    return render_template("page.html",
+                           title=page_path or ROOT_TITLE,
+                           page_path=page_path,
+                           page_html=page_html)
 
 
 @app.route('/_data/<path:filepath>')
