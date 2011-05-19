@@ -78,17 +78,19 @@ def gene_entry(node_or_any):
     return entry
 
 
-def gene_table(list2d, title=None):
+def gene_table(list2d, title=None, colwidths=None):
     """
     Generate table node from 2D list
     """
     nrow = len(list2d)
     ncol = len(list2d[0])
+    if colwidths is None:
+        colwidths = [1] * ncol
 
     table = nodes.table()
     tgroup = nodes.tgroup(cols=ncol)
     tbody = nodes.tbody()
-    colspecs = [nodes.colspec(colwidth=1) for dummy in range(ncol)]
+    colspecs = [nodes.colspec(colwidth=cw) for cw in colwidths]
     rows = [nodes.row() for dummy in range(nrow)]
 
     if title:
@@ -166,6 +168,11 @@ class TableDataAndImage(Directive):
            :data: x y result sub.result
            :image: x_y_plot.png x_result_plot.png
 
+    widths : integer [, integer...]
+        A comma- or space-separated list of relative column widths.
+        Note that the first column is data sub-table and the second and
+        the after are the images specified in `:image:`.
+
     image-{OPTION} : integer:{VAL} [, integer:{VAL} ...]
         `integer` is the index of the image.
         `{VAL}` specifies the value of the `{OPTION}` of the
@@ -181,7 +188,8 @@ class TableDataAndImage(Directive):
     optional_arguments = 0
     final_argument_whitespace = True
     option_spec = {'data': lambda x: x.split(),
-                   'image': lambda x: x.split()}
+                   'image': lambda x: x.split(),
+                   'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
 
@@ -193,6 +201,7 @@ class TableDataAndImage(Directive):
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])
         image_options = get_suboptions(self.options, 'image-')
+        colwidths = self.options.get('widths')
 
         rowdata = []
         for fullpath in glob(datapath):
@@ -209,7 +218,7 @@ class TableDataAndImage(Directive):
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
             rowdata.append([subtable] + images)
-        return [gene_table(rowdata)]
+        return [gene_table(rowdata, colwidths=colwidths)]
 
 
 def register_neorg_directives(datadir, dataurlroot):
