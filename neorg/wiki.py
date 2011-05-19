@@ -1,5 +1,32 @@
 """
 Convert page text using docutils
+
+Usage
+=====
+
+1. Register directives defined here to the docutils internal using
+   `register_neorg_directives` function.
+   See `neorg.commands.serve` for the real usage.
+2. Call `gene_html` with rst text.
+   See functions in `neorg.web` for the real usage.
+
+Internal
+========
+
+Registration of the `Directive` classes is tricky, because they
+uses `self._datadir` (file path to the data directory) and
+`self._dataurlroot` (url-equivalent of the `self._datadir`).
+These two class attributes are set in the `register_neorg_directives`
+function before the registration.  Note that `self._dirc_name` is
+used to store the directive name to its class for ease of the
+registration.
+
+Definition and the usage of the `Writer` and the `Reader` (and
+`Transform` classes in th Reader class) are pretty straightforward.
+These are written in the docstring of `publish_programmatically` in
+`docutils.core` which is referenced from `publish_parts` (the function
+used here).
+
 """
 
 from docutils.parsers.rst import directives, Directive
