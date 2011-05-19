@@ -215,6 +215,11 @@ class TableDataAndImage(Directive):
            :data: x y result sub.result
            :image: x_y_plot.png x_result_plot.png
 
+    base : string (newlines removed)
+        The base path for searching data. Real path to be used
+        will be `{BASE}/{ARG}` where `{ARG}` is each value in
+        the arguments and `{BASE}` is the value of this option.
+
     data : text [, text, ...]
         A comma- or comma-separated list of the "dictionary path".
         For each path, period-separated path such as 'a.b.c' or
@@ -246,15 +251,16 @@ class TableDataAndImage(Directive):
     final_argument_whitespace = True
     option_spec = {'data': parse_text_list,
                    'image': parse_text_list,
+                   'base': directives.path,
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
 
 
     def run(self):
-        datapathlist = glob_list(
-            [path.join(self._datadir, directives.uri(arg))
-             for arg in self.arguments])
+        basedir = path.join(self._datadir, self.options.get('base', ''))
+        datapathlist = glob_list([path.join(basedir, directives.uri(arg))
+                                  for arg in self.arguments])
 
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])
@@ -270,13 +276,27 @@ class TableDataAndImage(Directive):
             keyval = []
             for dictpath in data_keys:
                 keyval += get_nested_fnmatch(data, dictpath)
-            subtable = gene_table(keyval, relpath)
+            subtable = gene_table(keyval,
+                                  title=path.relpath(fullpath, basedir))
             images = [
                 nodes.image(uri=path.join(parenturl, name),
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
             rowdata.append([subtable] + images)
-        return [gene_table(rowdata, colwidths=colwidths)]
+        return [gene_table(rowdata,
+                           title=self.__table_title(),
+                           colwidths=colwidths)]
+
+    def __table_title(self):
+        base = self.options.get('base', '')
+        if len(self.arguments) < 2:
+            pathstr = path.join(base, self.arguments[0])
+        else:
+            pathstr = path.join(
+                base,
+                '{%s}' % ', '.join(
+                    [arg.strip(path.sep) for arg in self.arguments]))
+        return 'Data found in: %s' % pathstr
 
 
 def register_neorg_directives(datadir, dataurlroot):
