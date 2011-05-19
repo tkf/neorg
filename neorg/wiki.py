@@ -11,7 +11,7 @@ from docutils import nodes
 from os import path
 from glob import glob
 
-from neorg.data import load_any, get_nested
+from neorg.data import load_any, get_nested_fnmatch
 
 
 # disable docutils security hazards:
@@ -182,7 +182,9 @@ class TableDataAndImage(Directive):
             parenturl = path.join(self._dataurlroot,
                                   path.dirname(relpath))
             data = load_any(fullpath)
-            keyval = [(key, get_nested(data, key)) for key in data_keys]
+            keyval = []
+            for dictpath in data_keys:
+                keyval += get_nested_fnmatch(data, dictpath)
             subtable = gene_table(keyval, relpath)
             images = [
                 nodes.image(uri=path.join(parenturl, name),

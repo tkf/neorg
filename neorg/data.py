@@ -1,3 +1,5 @@
+from fnmatch import fnmatchcase
+
 try:
     import cPickle as pickle
 except:
@@ -71,3 +73,50 @@ def get_nested(dct, dictpath, sep='.'):
             else:
                 raise KeyError(dictpath)
     return elem
+
+
+def _nested_fnmatch(subdct, keylist):
+    if not keylist:
+        yield (keylist, subdct)
+        return
+
+    key_pat = keylist[0]
+    key_rest = keylist[1:]
+    if key_pat.isdigit():
+        try:
+            key_int = int(key_pat)
+            for (k0, v0) in _nested_fnmatch(subdct[key_int], key_rest):
+                yield ([key_int] + k0, v0)
+        except (KeyError, IndexError, TypeError):
+            pass
+    try:
+        key_cand_list = list(subdct)
+    except TypeError:
+        return
+    key_cand_list = list(subdct)
+    for key_cand in key_cand_list:
+        if fnmatchcase(str(key_cand), key_pat):
+            for (k0, v0) in _nested_fnmatch(subdct[key_cand], key_rest):
+                yield ([key_cand] + k0, v0)
+
+
+
+def get_nested_fnmatch(dct, dictpath, sep='.'):
+    """
+    Get a element from nested dictionary
+
+    >>> dct = {'a': {'b': {'c': 1}, 'd': {'c': 2}}}
+    >>> list(get_nested_fnmatch(dct, 'a.b.c'))
+    [('a.b.c', 1)]
+    >>> list(get_nested_fnmatch(dct, 'a.*.c'))
+    [('a.b.c', 1), ('a.d.c', 2)]
+    >>> dct2 = {'a': {'b': {'c': 1}, 'd': 2}}
+    >>> list(get_nested_fnmatch(dct2, 'a.*.c'))
+    [('a.b.c', 1)]
+    >>> list(get_nested_fnmatch(dct2, 'a.*'))
+    [('a.b', {'c': 1}), ('a.d', 2)]
+
+    """
+    for (keylist, val) in sorted(_nested_fnmatch(dct,
+                                                 dictpath.split(sep))):
+        yield (sep.join(map(str, keylist)), val)
