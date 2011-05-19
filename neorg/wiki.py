@@ -82,6 +82,8 @@ def gene_table(list2d, title=None, colwidths=None):
     """
     Generate table node from 2D list
     """
+    if not list2d:
+        return nodes.table()
     nrow = len(list2d)
     ncol = len(list2d[0])
     if colwidths is None:
@@ -104,6 +106,17 @@ def gene_table(list2d, title=None, colwidths=None):
         row += [gene_entry(elem) for elem in list1d]
 
     return table
+
+
+def parse_text_list(argument, delimiter=','):
+    """
+    Converts a space- or comma-separated list of values into a list
+    """
+    if delimiter in argument:
+        entries = argument.split(delimiter)
+    else:
+        entries = argument.split()
+    return [v.strip() for v in entries]
 
 
 def _adapt_option_spec_from_image():
@@ -175,6 +188,16 @@ class TableDataAndImage(Directive):
            :data: x y result sub.result
            :image: x_y_plot.png x_result_plot.png
 
+    data : text [, text, ...]
+        A comma- or comma-separated list of the "dictionary path".
+        For each path, period-separated path such as 'a.b.c' or
+        'alpha.0.1' can be used.
+
+    image : text [, text, ...]
+        A comma- or comma-separated list of path to the images.
+        The path is the relative path from the parent directory of
+        the data file.
+
     widths : integer [, integer...]
         A comma- or space-separated list of relative column widths.
         Note that the first column is data sub-table and the second and
@@ -194,8 +217,8 @@ class TableDataAndImage(Directive):
     required_arguments = 1
     optional_arguments = 10000  # nobody wants to put args more than this
     final_argument_whitespace = True
-    option_spec = {'data': lambda x: x.split(),
-                   'image': lambda x: x.split(),
+    option_spec = {'data': parse_text_list,
+                   'image': parse_text_list,
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
