@@ -291,9 +291,16 @@ class TableDataAndImage(Directive):
 
 
     def run(self):
-        basedir = path.join(self._datadir, self.options.get('base', ''))
-        datapathlist = glob_list([path.join(basedir, directives.uri(arg))
-                                  for arg in self.arguments])
+        # naming note:
+        #     - *_syspath is system path
+        #     - *_relpath is relative path from `self._datadir`
+        #     - *_absurl is url with leading slash
+
+        base_syspath = path.join(self._datadir,
+                                 self.options.get('base', ''))
+        data_syspath_list = glob_list([path.join(base_syspath,
+                                                 directives.uri(arg))
+                                       for arg in self.arguments])
 
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])
@@ -302,26 +309,27 @@ class TableDataAndImage(Directive):
         link = self.options.get('link')
 
         rowdata = []
-        for fullpath in datapathlist:
-            relpath = path.relpath(fullpath, self._datadir)
-            parentpath = path.dirname(relpath)
-            parenturl = path.join(self._dataurlroot, parentpath)
+        for data_syspath in data_syspath_list:
+            data_relpath = path.relpath(data_syspath, self._datadir)
+            parent_syspath = path.dirname(data_syspath)
+            parent_relpath = path.dirname(data_relpath)
+            parent_absurl = path.join(self._dataurlroot, parent_relpath)
             link_magic = {
-                'path': parentpath,
-                'relpath': path.relpath(path.dirname(fullpath), basedir),
+                'path': parent_relpath,
+                'relpath': path.relpath(parent_syspath, base_syspath),
                 }
-            data = load_any(fullpath)
+            data = load_any(data_syspath)
             keyval = []
             for dictpath in data_keys:
                 keyval += get_nested_fnmatch(data, dictpath)
-            subtable = gene_table(keyval,
-                                  title=path.relpath(fullpath, basedir))
+            subtable = gene_table(
+                keyval, title=path.relpath(data_syspath, base_syspath))
             col0 = [subtable]
             if link is not None:
                 col0.append(
                     gene_link_list([l % link_magic for l in link]))
             images = [
-                nodes.image(uri=path.join(parenturl, name),
+                nodes.image(uri=path.join(parent_absurl, name),
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
             rowdata.append([col0] + images)
