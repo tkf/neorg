@@ -89,6 +89,14 @@ class HTMLTranslator(html4css1.HTMLTranslator):
             self.starttag(node, 'table', CLASS=classes))
 
 
+def with_children(cls, children, *cls_args, **cls_kwds):
+    """
+    Generate new `cls` node instance and add `children` to it
+    """
+    node_instance = cls(*cls_args, **cls_kwds)
+    node_instance += children
+    return node_instance
+
 
 def gene_paragraph(rawtext):
     paragraph = nodes.paragraph()
@@ -97,8 +105,14 @@ def gene_paragraph(rawtext):
 
 
 def gene_entry(node_or_any):
+    """
+    Generate entry node from `node` or `[node, ...]` or anything.
+    """
     entry = nodes.entry()
     if isinstance(node_or_any, nodes.Node):
+        entry += node_or_any
+    elif (isinstance(node_or_any, (list, tuple)) and
+          all(isinstance(n, nodes.Node) for n in node_or_any)):
         entry += node_or_any
     else:
         entry += gene_paragraph(str(node_or_any))
@@ -133,6 +147,56 @@ def gene_table(list2d, title=None, colwidths=None):
         row += [gene_entry(elem) for elem in list1d]
 
     return table
+
+
+def gene_link(uri):
+    """
+    Generate link (a reference and a target)
+
+    >>> (reference, target) = gene_link('my/link')
+    >>> print reference.pformat()
+    <reference name="my/link" refuri="my/link">
+        my/link
+    <BLANKLINE>
+    >>> print target.pformat()
+    <target ids="my-link" names="my/link" refuri="my/link">
+    <BLANKLINE>
+
+    """
+    reference = nodes.reference(uri, text=uri, name=uri, refuri=uri)
+    target = nodes.target(
+        ids=[nodes.make_id(reference['name'])],
+        names=[nodes.fully_normalize_name(reference['name'])],
+        refuri=reference['name'],
+        )
+    return (reference, target)
+
+
+def gene_link_list(uri_list, bullet="*"):
+    """
+    Generate bullet list of uri from the list of uri
+
+    >>> print gene_link_list(['a', 'b']).pformat()
+    <bullet_list bullet="*">
+        <list_item>
+            <paragraph>
+                <reference name="a" refuri="a">
+                    a
+                <target ids="a" names="a" refuri="a">
+        <list_item>
+            <paragraph>
+                <reference name="b" refuri="b">
+                    b
+                <target ids="b" names="b" refuri="b">
+    <BLANKLINE>
+
+    """
+    bullet_list = nodes.bullet_list(bullet="*")
+    bullet_list += [
+        nodes.list_item(
+            '', with_children(nodes.paragraph, gene_link(l)))
+        for l in uri_list]
+    return bullet_list
 
 
 def parse_text_list(argument, delimiter=','):
@@ -220,6 +284,7 @@ class TableDataAndImage(Directive):
     option_spec = {'data': parse_text_list,
                    'image': parse_text_list,
                    'base': directives.path,
+                   'link': parse_text_list,
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
@@ -234,23 +299,32 @@ class TableDataAndImage(Directive):
         image_names = self.options.get('image', [])
         image_options = get_suboptions(self.options, 'image-')
         colwidths = self.options.get('widths')
+        link = self.options.get('link')
 
         rowdata = []
         for fullpath in datapathlist:
             relpath = path.relpath(fullpath, self._datadir)
-            parenturl = path.join(self._dataurlroot,
-                                  path.dirname(relpath))
+            parentpath = path.dirname(relpath)
+            parenturl = path.join(self._dataurlroot, parentpath)
+            link_magic = {
+                'path': parentpath,
+                'relpath': path.relpath(path.dirname(fullpath), basedir),
+                }
             data = load_any(fullpath)
             keyval = []
             for dictpath in data_keys:
                 keyval += get_nested_fnmatch(data, dictpath)
             subtable = gene_table(keyval,
                                   title=path.relpath(fullpath, basedir))
+            col0 = [subtable]
+            if link is not None:
+                col0.append(
+                    gene_link_list([l % link_magic for l in link]))
             images = [
                 nodes.image(uri=path.join(parenturl, name),
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
-            rowdata.append([subtable] + images)
+            rowdata.append([col0] + images)
         return [gene_table(rowdata,
                            title=self.__table_title(),
                            colwidths=colwidths)]

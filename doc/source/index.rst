@@ -32,6 +32,18 @@ Special directives
        `{VAL}` specifies the value of the `{OPTION}` of the
        image directive.
 
+   link : text [, text]
+       A comma- or comma-separated list of path to the link(s).
+       Magic words ``%(path)s`` and ``%(relpath)s`` are available.
+
+       ``%(path)s``
+           This represents full path to the parent directory of the
+           data file.
+       ``%(relpath)s``
+           This is the relative path of the ``%(path)s`` from the
+           `base` directory.
+
+
    Example:
 
    .. sourcecode:: rst
@@ -39,3 +51,4 @@ Special directives
        .. table-data-and-image:: my/experiment/2011-02-*/data.json
           :data: x y result sub.result
           :image: x_y_plot.png x_result_plot.png
+          :link: %(path)s
