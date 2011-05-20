@@ -269,6 +269,29 @@ def glob_list(pathlist, sorted=sorted):
     return globed
 
 
+def title_from_path(pathlist, base=None, format='%s'):
+    """
+    Format title string for searched path
+
+    >>> title_from_path(['just_one'])
+    'just_one'
+    >>> title_from_path(['one', 'two'])
+    '{one, two}'
+    >>> title_from_path(['one', 'two'], base='with_base')
+    'with_base/{one, two}'
+
+    """
+    base = '' if base is None else base
+    if len(pathlist) < 2:
+        pathstr = path.join(base, pathlist[0])
+    else:
+        pathstr = path.join(
+            base,
+            '{%s}' % ', '.join(
+                [arg.strip(path.sep) for arg in pathlist]))
+    return format % pathstr
+
+
 class TableDataAndImage(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -334,19 +357,11 @@ class TableDataAndImage(Directive):
                 for (i, name) in enumerate(image_names)]
             rowdata.append([col0] + images)
         return [gene_table(rowdata,
-                           title=self.__table_title(),
+                           title=title_from_path(
+                               self.arguments,
+                               self.options.get('base'),
+                               'Data found in: %s'),
                            colwidths=colwidths)]
-
-    def __table_title(self):
-        base = self.options.get('base', '')
-        if len(self.arguments) < 2:
-            pathstr = path.join(base, self.arguments[0])
-        else:
-            pathstr = path.join(
-                base,
-                '{%s}' % ', '.join(
-                    [arg.strip(path.sep) for arg in self.arguments]))
-        return 'Data found in: %s' % pathstr
 
 
 def register_neorg_directives(datadir, dataurlroot):
