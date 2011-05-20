@@ -15,6 +15,7 @@
       <div class="page-menu">
         <div class="page-path">/{{ page_path }}</div>
         <div class="page-actions">
+          <a href="{{ url_for('static', filename='help/index.html') }}">Help</a> |
           <a href="{{ url_for('history', page_path=page_path) }}">History</a> |
           <a href="{{ url_for('edit', page_path=page_path) }}">Edit</a>
         </div>
