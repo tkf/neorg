@@ -292,6 +292,68 @@ def title_from_path(pathlist, base=None, format='%s'):
     return format % pathstr
 
 
+class TableData(Directive):
+    """
+    Search data and show matched data and corresponding image(s)
+    """
+
+    _dirc_name = 'table-data'
+    _datadir = None  # needs override
+    _dataurlroot = None  # needs override
+
+    required_arguments = 1
+    optional_arguments = 10000  # nobody wants to put args more than this
+    final_argument_whitespace = True
+    option_spec = {'data': parse_text_list,
+                   'base': directives.path,
+                   'link': parse_text_list,
+                   'widths': directives.positive_int_list}
+    has_content = False
+
+
+    def run(self):
+        # naming note:
+        #     - *_syspath is system path
+        #     - *_relpath is relative path from `self._datadir`
+        #     - *_absurl is url with leading slash
+
+        base_syspath = path.join(self._datadir,
+                                 self.options.get('base', ''))
+        data_syspath_list = glob_list([path.join(base_syspath,
+                                                 directives.uri(arg))
+                                       for arg in self.arguments])
+
+        data_keys = self.options.get('data', [])
+        colwidths = self.options.get('widths')
+        link = self.options.get('link')
+
+        data_table = DictTable.from_path_list(data_syspath_list)
+
+        rowdata = []
+        for data_syspath in data_syspath_list:
+            data_relpath = path.relpath(data_syspath, self._datadir)
+            parent_syspath = path.dirname(data_syspath)
+            parent_relpath = path.dirname(data_relpath)
+            link_magic = {
+                'path': parent_relpath,
+                'relpath': path.relpath(parent_syspath, base_syspath),
+                }
+            subtable = gene_table(
+                data_table.get_nested_fnmatch(data_syspath, data_keys),
+                title=path.relpath(data_syspath, base_syspath))
+            col0 = [subtable]
+            if link is not None:
+                col0.append(
+                    gene_link_list([l % link_magic for l in link]))
+            rowdata.append([col0])
+        return [gene_table(rowdata,
+                           title=title_from_path(
+                               self.arguments,
+                               self.options.get('base'),
+                               'Data found in: %s'),
+                           colwidths=colwidths)]
+
+
 class TableDataAndImage(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -364,7 +426,7 @@ class TableDataAndImage(Directive):
 
 
 def register_neorg_directives(datadir, dataurlroot):
-    for cls in [TableDataAndImage]:
+    for cls in [TableData, TableDataAndImage]:
         cls._datadir = datadir
         cls._dataurlroot = dataurlroot
         directives.register_directive(cls._dirc_name, cls)
