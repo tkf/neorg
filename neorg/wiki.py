@@ -39,7 +39,7 @@ from docutils import nodes, writers
 from os import path
 from glob import glob
 
-from neorg.data import load_any, get_nested_fnmatch
+from neorg.data import DictTable
 
 
 # disable docutils security hazards:
@@ -331,6 +331,8 @@ class TableDataAndImage(Directive):
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
+        data_table = DictTable.from_path_list(data_syspath_list)
+
         rowdata = []
         for data_syspath in data_syspath_list:
             data_relpath = path.relpath(data_syspath, self._datadir)
@@ -341,12 +343,9 @@ class TableDataAndImage(Directive):
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
                 }
-            data = load_any(data_syspath)
-            keyval = []
-            for dictpath in data_keys:
-                keyval += get_nested_fnmatch(data, dictpath)
             subtable = gene_table(
-                keyval, title=path.relpath(data_syspath, base_syspath))
+                data_table.get_nested_fnmatch(data_syspath, data_keys),
+                title=path.relpath(data_syspath, base_syspath))
             col0 = [subtable]
             if link is not None:
                 col0.append(
