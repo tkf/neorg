@@ -159,6 +159,37 @@ def after_request(response):
     return response
 
 
+@app.route('/_delete', defaults={'page_path': ''}, methods=['POST'])
+@app.route('/<path:page_path>/_delete', methods=['POST'])
+def delete(page_path):
+    if request.form.get('yes') == 'Yes':
+        g.db.execute(
+            'delete from pages where page_path = ?',
+            [page_path])
+        g.db.execute(
+            'insert into page_history (page_path, page_text, page_exists) '
+            'values (?, ?, 0)',
+            [page_path, ''])
+        g.db.commit()
+        flash('Page "%s" was deleted.' % page_path)
+        return redirect(url_for('page', page_path=''))
+    elif request.form.get('no') == 'No':
+        flash('Cancel delete.')
+        return redirect(url_for('page', page_path=page_path))
+
+
+@app.route('/_confirm_delete', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_confirm_delete')
+def confirm_delete(page_path):
+    page_text = g.db.execute(
+        'select page_text from pages where page_path = ?',
+        [page_path]).fetchone()
+    return render_template("confirm_delete.html",
+                           title='Delete this page - ' + (page_path or ROOT_TITLE),
+                           page_path=page_path,
+                           page_html=gene_html(page_text[0]) if page_text else '')
+
+
 @app.route('/_save', defaults={'page_path': ''}, methods=['POST'])
 @app.route('/<path:page_path>/_save', methods=['POST'])
 def save(page_path):
@@ -191,6 +222,8 @@ def save(page_path):
     elif request.form.get('cancel') == 'Cancel':
         flash('Discarded changes!')
         return redirect(url_for("page", page_path=page_path))
+    elif request.form.get('delete') == 'Delete':
+        return redirect(url_for("confirm_delete", page_path=page_path))
 
 
 @app.route('/_edit', defaults={'page_path': ''})
