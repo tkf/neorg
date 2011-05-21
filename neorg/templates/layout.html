@@ -28,7 +28,7 @@
           {% endif %}
         </div>
         <div class="page-actions">
-          <a href="{{ url_for('static', filename='help/index.html') }}">Help</a> |
+          <a href="{{ url_for('help', filename='index.html') }}">Help</a> |
           <a href="{{ url_for('history', page_path=page_path) }}">History</a> |
           <a href="{{ url_for('descendants', page_path=page_path) }}">Descendants</a> |
           {% if temp_path %}

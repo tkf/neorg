@@ -6,6 +6,10 @@ class DefaultConfig(object):
     DATABASE = '%(neorg)s/neorg.db'
     DATADIRPATH = '%(root)s'
 
+    # HELPDIRPATH = '%(neorg)s/help'
+    # nerog reads help page from `static/help` if HELPDIRPATH is not
+    # defined
+
     SECRET_KEY = None  # needs override (flask build-in)
 
     ## USERNAME = 'admin'
@@ -40,6 +44,7 @@ def load_config(app, dirpath=None):
     app.config.update(
         DATABASE = expandall(app.config['DATABASE'] % magic),
         DATADIRPATH = expandall(app.config['DATADIRPATH'] % magic),
+        HELPDIRPATH = expandall(app.config['HELPDIRPATH'] % magic),
         )
 
 

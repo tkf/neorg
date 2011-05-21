@@ -1,4 +1,5 @@
 from __future__ import with_statement
+import os
 import re
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
@@ -327,3 +328,14 @@ def data_file(filepath):
 @app.route('/favicon.ico/')
 def favicon():
     return redirect(url_for('static', filename='favicon.ico'))
+
+
+@app.route('/_help/<path:filename>')
+def help(filename):
+    helpdirpath = app.config['HELPDIRPATH']
+    if (isinstance(helpdirpath, basestring) and
+        os.path.exists(helpdirpath)):
+        return send_from_directory(helpdirpath, filename)
+    else:
+        return redirect(url_for('static',
+                                filename=os.path.join('help', filename)))
