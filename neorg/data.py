@@ -98,7 +98,7 @@ class DictTable(object):
 
     sep = '.'
 
-    def __init__(self):
+    def __init__(self, data=None):
         # dict of dict. access via self._table[(k1, k2, ...)][name]
         self._table = {}
         # original dict.
@@ -107,6 +107,22 @@ class DictTable(object):
         self._name = []
         # set of key
         self._keys = set()
+
+        if data is not None:
+            for (name, dct) in data.iteritems():
+                self.append(name, dct)
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self._table == other._table and
+                self._name == other._name and
+                self._keys == other._keys)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        return 'DictTable(%r)' % self._original
 
     def append(self, name, dct):
         """Append a dict-like object with name"""
@@ -165,6 +181,31 @@ class DictTable(object):
                     for key in key_list]
             data.append(row)
         return data
+
+    def _gene_dict(self, key_val_list):
+        dct = {}
+        for (key, val) in key_val_list:
+            key = self.parse_key(key)
+            last = len(key) - 1
+            subdct = dct
+            for (i, k) in enumerate(key):
+                if i == last:
+                    subdct[k] = val
+                else:
+                    subdct = subdct.setdefault(k, {})
+        return dct
+
+    def filter_by_fnmatch(self, key_list, *args, **kwds):
+        """
+        Make new DictTable filtered by fnmatch given fnmatch patterns
+        """
+        newdt = DictTable()
+        def filtered(name):
+            return self._gene_dict(
+                self.get_nested_fnmatch(name, key_list, *args, **kwds))
+        for name in self._name:
+            newdt.append(name, filtered(name))
+        return newdt
 
     def get_by_name(self, name):
         return self._original[name]
