@@ -123,25 +123,47 @@ class DictTable(object):
         else:
             return tuple(key.split(self.sep))
 
-    def as_list(self, key_list=None, name_list=None, deficit=None):
+    def key_as_str(self, key):
+        if isinstance(key, basestring):
+            return key
+        else:
+            return self.sep.join(key)
+
+    def as_list(self, key_list=None, name_list=None, deficit=None,
+                with_key=True, with_name=True, left_top=''):
         """
         Get stored dictionaries as list-of-list
 
         >>> dt = DictTable()
         >>> dt.append('A', dict(a=1, b=2, c=[1,2], d=dict(e=1, f='')))
         >>> dt.append('B', dict(a=1, b=3, c=[2,3], d=dict(e=2)))
-        >>> dt.as_list()
-        [[1, 2, [1, 2], 1, ''], [1, 3, [2, 3], 2, None]]
+        >>> dt.as_list() #doctest: +NORMALIZE_WHITESPACE
+        [['', 'a', 'b', 'c', 'd.e', 'd.f'],
+         ['A', 1, 2, [1, 2], 1, ''],
+         ['B', 1, 3, [2, 3], 2, None]]
         >>> dt.as_list(key_list=['a', 'b', 'd.f'])
-        [[1, 2, ''], [1, 3, None]]
+        [['', 'a', 'b', 'd.f'], ['A', 1, 2, ''], ['B', 1, 3, None]]
 
         """
         key_list = sorted(self._keys) if key_list is None else key_list
         name_list = self._name if name_list is None else name_list
-        data = [
-            [self._table.get(self.parse_key(key), {}).get(name, deficit)
-             for key in key_list]
-            for name in name_list]
+        if with_key:
+            first_row = [self.key_as_str(key) for key in key_list]
+            if with_name:
+                first_row = [left_top] + first_row
+        else:
+            first_row = []
+
+        data = [first_row]
+        for name in name_list:
+            if with_name:
+                row = [name]
+            else:
+                row = []
+            row += [self._table.get(self.parse_key(key), {}
+                                    ).get(name, deficit)
+                    for key in key_list]
+            data.append(row)
         return data
 
     def get_by_name(self, name):
