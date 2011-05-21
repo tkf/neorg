@@ -29,4 +29,6 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering",
         ],
+    entry_points = {
+        'console_scripts': ['neorg = neorg.commands:main']}
     )
