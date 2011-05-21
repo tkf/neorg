@@ -7,6 +7,10 @@ body {
     font-family: sans-serif;
 }
 
+body.gene {
+    background: #B8D8B8;
+}
+
 a {
     color: #377BA8;
 }

@@ -9,15 +9,24 @@
     <link rel="shortcut icon"
           href="{{ url_for('static', filename='favicon.ico') }}" />
   </head>
-  <body>
+  <body{% if temp_path %} class="gene"{% endif %}>
     <div class="page">
       {% macro menu() %}
       <div class="page-menu">
-        <div class="page-path">/{{ page_path }}</div>
+        <div class="page-path">
+          /{{ page_path }}
+          {% if temp_path %}
+          (generated)
+          {% endif %}
+        </div>
         <div class="page-actions">
           <a href="{{ url_for('static', filename='help/index.html') }}">Help</a> |
           <a href="{{ url_for('history', page_path=page_path) }}">History</a> |
+          {% if temp_path %}
+          <a href="{{ url_for('edit', page_path=temp_path) }}">Edit Template</a>
+          {% else %}
           <a href="{{ url_for('edit', page_path=page_path) }}">Edit</a>
+          {% endif %}
         </div>
         <div style="clear: both;"> </div>
       </div>

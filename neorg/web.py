@@ -208,6 +208,7 @@ def gene_from_template(page_path):
         page_html = gene_html(page_text)
         return render_template("page.html",
                                title=page_path or ROOT_TITLE,
+                               temp_path=temp_path,
                                page_path=page_path,
                                page_html=page_html)
 
