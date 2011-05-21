@@ -77,6 +77,9 @@ Show data in table - :rst:dir:`table-data`
            This is the relative path of the ``%(path)s`` from the
            `base` directory.
 
+   trans : flag
+       Transpose the table.
+
    Example:
 
    .. sourcecode:: rst

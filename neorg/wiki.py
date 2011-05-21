@@ -338,7 +338,8 @@ class TableData(Directive):
     option_spec = {'data': parse_text_list,
                    'base': directives.path,
                    'link': parse_text_list,
-                   'widths': directives.positive_int_list}
+                   'widths': directives.positive_int_list,
+                   'trans': directives.flag}
     has_content = False
 
 
@@ -378,6 +379,8 @@ class TableData(Directive):
             if link is not None:
                 row.append(gene_links_in_paragraph(
                     [l % link_magic for l in link]))
+        if 'trans' in self.options:
+            rowdata = zip(*rowdata)
         return [gene_table(rowdata,
                            title=title_from_path(
                                self.arguments,
