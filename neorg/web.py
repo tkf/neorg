@@ -332,7 +332,7 @@ def favicon():
 
 @app.route('/_help/<path:filename>')
 def help(filename):
-    helpdirpath = app.config['HELPDIRPATH']
+    helpdirpath = app.config.get('HELPDIRPATH')
     if (isinstance(helpdirpath, basestring) and
         os.path.exists(helpdirpath)):
         return send_from_directory(helpdirpath, filename)
