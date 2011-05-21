@@ -92,3 +92,40 @@ Special directives
           :data: x y result sub.result
           :image: x_y_plot.png x_result_plot.png
           :link: %(path)s
+
+
+Template page (``<temp>``)
+==========================
+
+The page which include ``<temp>`` in its URL is the template page.
+The template page is used for generating page which is not exists
+but the template page exists at the same level of the URL.
+
+Example.:
+
+    (a) ``/my/page/<temp>/``
+    (b) ``/my/page/<temp>/<temp>/``
+    (c) ``/my/page/<temp>/images/``
+    (d) ``/my/page/<temp>/subdata/<temp>/``
+    (e) ``/my/page/<temp>/<temp>/subdata``
+
+    * ``/my/page/2011-05-21/_der`` matches to (a)
+    * ``/my/page/2011-05-21/some-data/_der`` matches to (b)
+    * ``/my/page/2011-05-21/images/_der`` matches to (c)
+    * ``/my/page/2011-05-21/subdata/000/_der`` matches to (d)
+    * ``/my/page/2011-05-21/000/subdata/_der`` matches to (e)
+    * ``/my/page/2011-05-21/subdata/subdata/_der`` matches to (e)
+
+
+``{{ args[N] }}`` (where ``N`` is an integer)
+    N-th replacement of the ``<temp>`` in the URL.
+    For example, at the page ``/my/page/2011-05-21/subdata/000/_der``
+    in the above example, ``{{ args[0] }}`` and ``{{ args[1] }}``
+    will be replaced by ``2011-05-21`` and ``000``.
+
+``{{ path }}``
+    This will be replaced by the full path to this directory.
+
+``{{ relpath }}``
+    This will be replaced by the relative path from the parent page of
+    the leftmost ``<temp>`` page.

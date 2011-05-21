@@ -1,11 +1,91 @@
 from __future__ import with_statement
+import re
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 from flask import (Flask, request, g, redirect, url_for,
                    render_template, flash, send_from_directory)
-
+import jinja2
 from neorg.config import DefaultConfig
 from neorg.wiki import gene_html
+
+
+def regex_from_temp_path(path):
+    """
+    Generate regex expression from URL for matching template page
+
+    >>> regex_from_temp_path('/non/temp/url/')
+    '^/non/temp/url/$'
+    >>> regex_from_temp_path('/just/one/<temp>/')
+    '^/just/one/([^/]*)/$'
+    >>> regex_from_temp_path('/try/two/<temp>/<temp>/')
+    '^/try/two/([^/]*)/([^/]*)/$'
+
+    """
+    return '^%s$' % path.replace('<temp>', '([^/]*)')
+
+
+def match_temp_path(path, temp_path_list):
+    """
+    Returs matched template path and the matched object
+
+    >>> (temp_path, match) = match_temp_path(
+    ...    '/my/url', ['/some/url', '/my/<temp>', '/<temp>'])
+    ...
+    >>> temp_path
+    '/my/<temp>'
+    >>> match.groups()
+    ('url',)
+    >>> (temp_path, match) = match_temp_path(
+    ...    '/my/url', ['/some/url', '/my/<temp>', '/<temp>/<temp>'])
+    ...
+    >>> temp_path
+    '/my/<temp>'
+    >>> match.groups()
+    ('url',)
+
+    """
+    for temp_path in sorted(temp_path_list, reverse=True):
+        match = re.match(regex_from_temp_path(temp_path), path)
+        if match:
+            return (temp_path, match)
+    return (None, None)
+
+
+def find_temp_path(path):
+    """
+    Find the template path matches the given path
+    """
+    temp_path_list = g.db.execute(
+        "select page_path from pages").fetchall()
+    return match_temp_path(path, [row[0] for row in temp_path_list])
+
+
+def temp_parent_path(temp_path):
+    """
+    The path of the parent page of the leftmost ``<temp>`` page
+
+    >>> temp_parent_path('/parent/<temp>/')
+    '/parent/'
+    >>> temp_parent_path('/parent/<temp>/complicated/<temp>')
+    '/parent/'
+
+    """
+    i = temp_path.find('/<temp>')
+    if i >= 0:
+        return temp_path[:i] + '/'
+    else:
+        raise ValueError("cannot find '<temp>' in '%s'" % temp_path)
+
+
+def der_relpath(page_path, temp_path):
+    parent_path = temp_parent_path(temp_path)
+    parent_len = len(parent_path)
+    if page_path[:parent_len] != parent_path:
+        raise ValueError(
+            "temp_path '%s' is not the correct template path of "
+            "page_path '%s'." % (temp_path, page_path))
+    return page_path[parent_len - 1:]
+
 
 ROOT_TITLE = 'Organize your experiments and find out more!'
 
@@ -100,6 +180,28 @@ def page(page_path):
                                page_html=page_html)
     else:
         return redirect(url_for('edit', page_path=page_path))
+
+
+@app.route('/', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_der')
+def der(page_path):
+    (temp_path, match) = find_temp_path(page_path)
+    if match:
+        temp_text = g.db.execute(
+            'select page_text from pages where page_path = ?',
+            [temp_path]).fetchone()
+        template = jinja2.Environment().from_string(temp_text[0])
+        page_text = template.render({
+            'path': page_path,
+            'relpath': der_relpath(page_path, temp_path),
+            'args': match.groups(),
+            })
+        page_html = gene_html(page_text)
+        return render_template("page.html",
+                               title=page_path or ROOT_TITLE,
+                               page_path=page_path,
+                               page_html=page_html)
+
 
 
 @app.route('/_history', defaults={'page_path': ''})
