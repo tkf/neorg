@@ -191,12 +191,37 @@ def gene_link_list(uri_list, bullet="*"):
     <BLANKLINE>
 
     """
-    bullet_list = nodes.bullet_list(bullet="*")
+    bullet_list = nodes.bullet_list(bullet=bullet)
     bullet_list += [
         nodes.list_item(
             '', with_children(nodes.paragraph, gene_link(l)))
         for l in uri_list]
     return bullet_list
+
+
+def gene_links_in_paragraph(uri_list, sep=" | "):
+    """
+    Generate list of uri in a paragraph from the list of uri
+
+    >>> print gene_links_in_paragraph(['a', 'b']).pformat()
+    <paragraph>
+        <reference name="a" refuri="a">
+            a
+        <target ids="a" names="a" refuri="a">
+         | 
+        <reference name="b" refuri="b">
+            b
+        <target ids="b" names="b" refuri="b">
+    <BLANKLINE>
+
+    """
+    paragraph = nodes.paragraph()
+    last = len(uri_list) - 1
+    for (i, l) in enumerate(uri_list):
+        paragraph += gene_link(l)
+        if i != last:
+            paragraph += nodes.Text(sep)
+    return paragraph
 
 
 def parse_text_list(argument, delimiter=','):
@@ -322,15 +347,21 @@ class TableData(Directive):
         data_syspath_list = glob_list([path.join(base_syspath,
                                                  directives.uri(arg))
                                        for arg in self.arguments])
+        from_base_list = [
+            path.relpath(x, base_syspath) for x in data_syspath_list]
 
         data_keys = self.options.get('data', [])
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
-        data_table = DictTable.from_path_list(data_syspath_list)
+        data_table = DictTable.from_path_list(data_syspath_list,
+                                              from_base_list)
+        data_table = data_table.filter_by_fnmatch(data_keys)
+        rowdata = data_table.as_list()
+        if link is not None:
+            rowdata[0].append('link(s)')
 
-        rowdata = []
-        for data_syspath in data_syspath_list:
+        for (data_syspath, row) in zip(data_syspath_list, rowdata[1:]):
             data_relpath = path.relpath(data_syspath, self._datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
@@ -338,14 +369,9 @@ class TableData(Directive):
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
                 }
-            subtable = gene_table(
-                data_table.get_nested_fnmatch(data_syspath, data_keys),
-                title=path.relpath(data_syspath, base_syspath))
-            col0 = [subtable]
             if link is not None:
-                col0.append(
-                    gene_link_list([l % link_magic for l in link]))
-            rowdata.append([col0])
+                row.append(gene_links_in_paragraph(
+                    [l % link_magic for l in link]))
         return [gene_table(rowdata,
                            title=title_from_path(
                                self.arguments,
