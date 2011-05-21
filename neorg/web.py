@@ -94,6 +94,39 @@ def relpath_from_temp(page_path, temp_path):
     return page_path[parent_len - 1:]
 
 
+def remove_leading_slash(path):
+    return path if len(path) == 0 or path[0] != '/' else path[1:]
+
+
+def filter_descendants(path, path_list):
+    """
+    Find descendants of `path` in `path_list` and returns relative paths
+
+    >>> path_list = ['a', 'a/b', 'a/b/c']
+    >>> filter_descendants('', path_list)
+    ['a', 'a/b', 'a/b/c']
+    >>> filter_descendants('a', path_list)
+    ['', 'b', 'b/c']
+    >>> filter_descendants('a/b', path_list)
+    ['', 'c']
+
+    """
+    lenpath = len(path)
+    return [
+        remove_leading_slash(p[lenpath:])
+        for p in path_list if p.startswith(path)]
+
+
+def find_descendants(path):
+    """
+    Find the pages which has `path` as its heading path.
+    """
+    path_list = [
+        row[0] for row in
+        g.db.execute("select page_path from pages").fetchall()]
+    return filter_descendants(path, path_list)
+
+
 ROOT_TITLE = 'Organize your experiments and find out more!'
 
 app = Flask('neorg')
@@ -212,6 +245,16 @@ def gene_from_template(page_path):
                                page_path=page_path,
                                page_html=page_html)
 
+
+
+@app.route('/_descendants', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_descendants')
+def descendants(page_path):
+    link_list = (map('./{0}'.format, sorted(find_descendants(page_path))))
+    return render_template("descendants.html",
+                           title='Descendants - ' + (page_path or ROOT_TITLE),
+                           link_list=link_list,
+                           page_path=page_path)
 
 
 @app.route('/_history', defaults={'page_path': ''})
