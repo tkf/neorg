@@ -94,6 +94,16 @@ Special directives
           :link: %(path)s
 
 
+.. rst:directive:: .. find-images:: path [path ...]
+
+   Search images under the given list of `path` and show matched images.
+
+   base : string (newlines removed)
+       The base path for searching data. Real path to be used
+       will be `{BASE}/{ARG}` where `{ARG}` is each value in
+       the arguments and `{BASE}` is the value of this option.
+
+
 Template page (``<temp>``)
 ==========================
 

@@ -46,6 +46,12 @@ from neorg.data import DictTable
 # http://docutils.sourceforge.net/docs/howto/security.html
 SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 
+# it seems docuitls that docuitls needs upper limit for
+# `Directive.optional_arguments` attribute.
+# this is virtually infinite number for NEOrg.
+# nobody wants to put args more than this (I hope)
+OPTIONAL_ARGUMENTS_INF = 10000
+
 
 class AddPageLinks(Transform):
     """
@@ -327,7 +333,7 @@ class TableData(Directive):
     _dataurlroot = None  # needs override
 
     required_arguments = 1
-    optional_arguments = 10000  # nobody wants to put args more than this
+    optional_arguments = OPTIONAL_ARGUMENTS_INF
     final_argument_whitespace = True
     option_spec = {'data': parse_text_list,
                    'base': directives.path,
@@ -390,7 +396,7 @@ class TableDataAndImage(Directive):
     _dataurlroot = None  # needs override
 
     required_arguments = 1
-    optional_arguments = 10000  # nobody wants to put args more than this
+    optional_arguments = OPTIONAL_ARGUMENTS_INF
     final_argument_whitespace = True
     option_spec = {'data': parse_text_list,
                    'image': parse_text_list,
@@ -451,8 +457,47 @@ class TableDataAndImage(Directive):
                            colwidths=colwidths)]
 
 
+class FindImages(Directive):
+
+    _dirc_name = 'find-images'
+    _datadir = None  # needs override
+    _dataurlroot = None  # needs override
+
+    required_arguments = 1
+    optional_arguments = OPTIONAL_ARGUMENTS_INF
+    final_argument_whitespace = True
+    option_spec = {'base': directives.path}
+    has_content = False
+
+    def run(self):
+        # naming note:
+        #     - *_syspath is system path
+        #     - *_relpath is relative path from `self._datadir`
+        #     - *_absurl is url with leading slash
+
+        base_syspath = path.join(self._datadir,
+                                 self.options.get('base', ''))
+        image_syspath_list = glob_list([path.join(base_syspath,
+                                                  directives.uri(arg))
+                                        for arg in self.arguments])
+
+        def gene_image(relpath):
+            image_node = nodes.image(
+                rawsource='',
+                uri=path.join(self._dataurlroot, relpath))
+            image_node['classes'].append('neorg-find-images-image')
+            return image_node
+
+        node_list = []
+        for image_syspath in image_syspath_list:
+            image_relpath = path.relpath(image_syspath, self._datadir)
+            node_list += [gene_paragraph(image_relpath),
+                          gene_image(image_relpath)]
+        return node_list
+
+
 def register_neorg_directives(datadir, dataurlroot):
-    for cls in [TableData, TableDataAndImage]:
+    for cls in [TableData, TableDataAndImage, FindImages]:
         cls._datadir = datadir
         cls._dataurlroot = dataurlroot
         directives.register_directive(cls._dirc_name, cls)
