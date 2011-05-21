@@ -14,7 +14,15 @@
       {% macro menu() %}
       <div class="page-menu">
         <div class="page-path">
-          /{{ page_path }}
+          <a href="/">NEOrg::</a>/
+          {%- if page_path -%}
+          {%- set page_path_as_list = page_path.split('/') -%}
+          {%- for p in page_path_as_list -%}
+          <a href="/{{ '/'.join(page_path_as_list[:loop.index]) }}">
+            {{- p -}}
+          </a>/
+          {%- endfor %}
+          {% endif %}
           {% if temp_path %}
           (generated)
           {% endif %}
