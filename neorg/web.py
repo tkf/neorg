@@ -77,7 +77,14 @@ def temp_parent_path(temp_path):
         raise ValueError("cannot find '<temp>' in '%s'" % temp_path)
 
 
-def der_relpath(page_path, temp_path):
+def relpath_from_temp(page_path, temp_path):
+    """
+    Relative path from the parent of the leftmost ``<temp>`` page
+
+    >>> relpath_from_temp('/parent/generated', '/parent/<temp>')
+    '/generated'
+
+    """
     parent_path = temp_parent_path(temp_path)
     parent_len = len(parent_path)
     if page_path[:parent_len] != parent_path:
@@ -179,12 +186,14 @@ def page(page_path):
                                page_path=page_path,
                                page_html=page_html)
     else:
-        return redirect(url_for('edit', page_path=page_path))
+        generated = gene_from_template(page_path)
+        if generated:
+            return generated
+        else:
+            return redirect(url_for('edit', page_path=page_path))
 
 
-@app.route('/', defaults={'page_path': ''})
-@app.route('/<path:page_path>/_der')
-def der(page_path):
+def gene_from_template(page_path):
     (temp_path, match) = find_temp_path(page_path)
     if match:
         temp_text = g.db.execute(
@@ -193,7 +202,7 @@ def der(page_path):
         template = jinja2.Environment().from_string(temp_text[0])
         page_text = template.render({
             'path': page_path,
-            'relpath': der_relpath(page_path, temp_path),
+            'relpath': relpath_from_temp(page_path, temp_path),
             'args': match.groups(),
             })
         page_html = gene_html(page_text)

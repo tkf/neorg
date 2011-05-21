@@ -109,17 +109,17 @@ Example.:
     (d) ``/my/page/<temp>/subdata/<temp>/``
     (e) ``/my/page/<temp>/<temp>/subdata``
 
-    * ``/my/page/2011-05-21/_der`` matches to (a)
-    * ``/my/page/2011-05-21/some-data/_der`` matches to (b)
-    * ``/my/page/2011-05-21/images/_der`` matches to (c)
-    * ``/my/page/2011-05-21/subdata/000/_der`` matches to (d)
-    * ``/my/page/2011-05-21/000/subdata/_der`` matches to (e)
-    * ``/my/page/2011-05-21/subdata/subdata/_der`` matches to (e)
+    * ``/my/page/2011-05-21/`` matches to (a)
+    * ``/my/page/2011-05-21/some-data/`` matches to (b)
+    * ``/my/page/2011-05-21/images/`` matches to (c)
+    * ``/my/page/2011-05-21/subdata/000/`` matches to (d)
+    * ``/my/page/2011-05-21/000/subdata/`` matches to (e)
+    * ``/my/page/2011-05-21/subdata/subdata/`` matches to (e)
 
 
 ``{{ args[N] }}`` (where ``N`` is an integer)
     N-th replacement of the ``<temp>`` in the URL.
-    For example, at the page ``/my/page/2011-05-21/subdata/000/_der``
+    For example, at the page ``/my/page/2011-05-21/subdata/000/``
     in the above example, ``{{ args[0] }}`` and ``{{ args[1] }}``
     will be replaced by ``2011-05-21`` and ``000``.
 
