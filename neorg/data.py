@@ -146,7 +146,7 @@ class DictTable(object):
             return self.sep.join(key)
 
     def as_list(self, key_list=None, name_list=None, deficit=None,
-                with_key=True, with_name=True, left_top=''):
+                with_key=True, with_name=True, left_top='', as_str=repr):
         """
         Get stored dictionaries as list-of-list
 
@@ -155,10 +155,10 @@ class DictTable(object):
         >>> dt.append('B', dict(a=1, b=3, c=[2,3], d=dict(e=2)))
         >>> dt.as_list() #doctest: +NORMALIZE_WHITESPACE
         [['', 'a', 'b', 'c', 'd.e', 'd.f'],
-         ['A', 1, 2, [1, 2], 1, ''],
-         ['B', 1, 3, [2, 3], 2, None]]
+         ['A', '1', '2', '[1, 2]', '1', "''"],
+         ['B', '1', '3', '[2, 3]', '2', None]]
         >>> dt.as_list(key_list=['a', 'b', 'd.f'])
-        [['', 'a', 'b', 'd.f'], ['A', 1, 2, ''], ['B', 1, 3, None]]
+        [['', 'a', 'b', 'd.f'], ['A', '1', '2', "''"], ['B', '1', '3', None]]
 
         """
         key_list = sorted(self._keys) if key_list is None else key_list
@@ -169,6 +169,14 @@ class DictTable(object):
                 first_row = [left_top] + first_row
         else:
             first_row = []
+        notfound = object()  # unique object
+
+        def get(name, key):
+            value = self._table.get(
+                self.parse_key(key), {}).get(name, notfound)
+            if value is notfound:
+                return deficit
+            return as_str(value)
 
         data = [first_row]
         for name in name_list:
@@ -176,9 +184,7 @@ class DictTable(object):
                 row = [name]
             else:
                 row = []
-            row += [self._table.get(self.parse_key(key), {}
-                                    ).get(name, deficit)
-                    for key in key_list]
+            row += [get(name, key) for key in key_list]
             data.append(row)
         return data
 
