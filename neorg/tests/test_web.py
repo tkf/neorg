@@ -1,3 +1,15 @@
+"""
+Tests for neorg.web flask application
+
+Fast test by class-level setup/teardown
+---------------------------------------
+The class TestNEOrgWeb supports both instance-level and class-level
+setup/teardown. This can be selected by setting the NEORG_FASTTEST
+environment variable. Nonzero length string means the class-level
+setup/teardown.
+
+"""
+
 import os
 import tempfile
 import shutil
@@ -9,25 +21,54 @@ from neorg.config import DefaultConfig
 TMP_PREFIX = 'neorg-tmp'
 
 
-class TestNEOrgWeb(object):
+def setup_app():
+    web.app.config.from_object(DefaultConfig)
+    (db_fd, web.app.config['DATABASE']) = tempfile.mkstemp(prefix=TMP_PREFIX)
+    web.app.config['DATADIRPATH'] = tempfile.mkdtemp(prefix=TMP_PREFIX)
+    web.app.config['SECRET_KEY'] = 'key for testing'
+    app = web.app.test_client()
+    web.init_db()
+
+    from neorg.wiki import register_neorg_directives, gene_html
+    register_neorg_directives(web.app.config['DATADIRPATH'], '/_data')
+    return (app, db_fd, gene_html)
+
+
+def teardown_app():
+    os.remove(web.app.config['DATABASE'])
+    shutil.rmtree(web.app.config['DATADIRPATH'])
+
+
+class TestNEOrgWebSlow(object):
 
     def setUp(self):
         """Before each test, set up a blank database"""
-        web.app.config.from_object(DefaultConfig)
-        self.db_fd, web.app.config['DATABASE'] = (
-            tempfile.mkstemp(prefix=TMP_PREFIX))
-        web.app.config['DATADIRPATH'] = tempfile.mkdtemp(prefix=TMP_PREFIX)
-        web.app.config['SECRET_KEY'] = 'key for testing'
-        self.app = web.app.test_client()
-        web.init_db()
-
-        from neorg.wiki import register_neorg_directives, gene_html
-        register_neorg_directives(web.app.config['DATADIRPATH'], '/_data')
-        self.gene_html = gene_html
+        (self.app, self.db_fd, self.gene_html) = setup_app()
 
     def tearDown(self):
-        os.remove(web.app.config['DATABASE'])
-        shutil.rmtree(web.app.config['DATADIRPATH'])
+        teardown_app()
+
+
+class TestNEOrgWebFast(object):
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up a blank database for all test"""
+        (cls.app, cls.db_fd, gene_html) = setup_app()
+        cls.gene_html = staticmethod(gene_html)
+
+    @classmethod
+    def tearDownClass(cls):
+        teardown_app()
+
+
+if os.environ.get("NEORG_FASTTEST") or False:
+    TestNEOrgWebBase = TestNEOrgWebFast
+else:
+    TestNEOrgWebBase = TestNEOrgWebSlow
+
+
+class TestNEOrgWeb(TestNEOrgWebBase):
 
     def test_empty_db(self):
         response = self.app.get('/')
