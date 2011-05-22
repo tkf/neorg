@@ -94,13 +94,11 @@ class TestNEOrgWeb(TestNEOrgWebBase):
     # fail_check_save = raises(AssertionError)(check_save)  # does not work!
 
     def test_save(self):
-        for (page_path, page_text) in [("", "This is my first post"),
-                                       ("", "This is my second post"),
-                                       ("SubPage", "This is my subpage")]:
-            yield (self.check_save, page_path, page_text)
+        data = [("", "This is my first post"),
+                ("", "This is my second post"),
+                ("SubPage", "This is my subpage")]
+        fake_html = "But this is not!"
 
-        for (page_path, page_text) in [("", "This is my first post"),
-                                       ("", "This is my second post"),
-                                       ("SubPage", "This is my subpage")]:
-            page_html = "But this is not!"
-            yield (self.fail_check_save, page_path, page_text, page_html)
+        for (page_path, page_text) in data:
+            yield (self.check_save, page_path, page_text)
+            yield (self.fail_check_save, page_path, page_text, fake_html)
