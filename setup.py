@@ -63,18 +63,22 @@ class update_help(Command):
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
-        sphinx_build_dir = os.path.join(sphinx_build_dir, 'html')
+        sphinx_html_dir = os.path.join(sphinx_build_dir, 'html')
         static_help = os.path.join('neorg', 'static', 'help')
-        if os.path.exists(static_help):
-            shutil.rmtree(static_help)
-        log.info("copying '%s' to '%s'" % (sphinx_build_dir, static_help))
-        shutil.copytree(sphinx_build_dir, static_help)
+        if os.path.exists(sphinx_html_dir):
+            if os.path.exists(static_help):
+                shutil.rmtree(static_help)
+            log.info("copying '%s' to '%s'" % (sphinx_html_dir, static_help))
+            shutil.copytree(sphinx_build_dir, static_help)
+        else:
+            log.warn("'%s' does not exists. '%s' is not updated"
+                     % (sphinx_html_dir, static_help))
 
     def has_sphinx(self):
         if BUILD_SPHINX_AVAILABLE:
             return True
         else:
-            log.warn("sphinx is no available. do not run build_sphinx.")
+            log.warn("sphinx is not available. do not run build_sphinx.")
             return False
 
     sub_commands = [
