@@ -32,7 +32,7 @@ class my_build(build):
         if os.path.exists(help_source):
             return True
         else:
-            log.info("'%s' does not exists. do not run update_help."
+            log.info("'%s' does not exist. do not run update_help."
                      % help_source)
             return False
 
