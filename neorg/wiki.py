@@ -323,6 +323,12 @@ def title_from_path(pathlist, base=None, format='%s'):
     return format % pathstr
 
 
+def choice_from(*choices):
+    def conv_func(argument):
+        return directives.choice(argument, choices)
+    return conv_func
+
+
 class TableData(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -339,6 +345,7 @@ class TableData(Directive):
                    'base': directives.path,
                    'link': parse_text_list,
                    'widths': directives.positive_int_list,
+                   'path-order': choice_from('sort', 'sort_r'),
                    'trans': directives.flag}
     has_content = False
 
@@ -348,12 +355,18 @@ class TableData(Directive):
         #     - *_syspath is system path
         #     - *_relpath is relative path from `self._datadir`
         #     - *_absurl is url with leading slash
+        path_order = self.options.get('path-order', 'sorted')
+        if path_order == 'sort_r':
+            glob_list_sorted = lambda x: sorted(x, reverse=True)
+        else:
+            glob_list_sorted = sorted
 
         base_syspath = path.join(self._datadir,
                                  self.options.get('base', ''))
         data_syspath_list = glob_list([path.join(base_syspath,
                                                  directives.uri(arg))
-                                       for arg in self.arguments])
+                                       for arg in self.arguments],
+                                      glob_list_sorted)
         from_base_list = [
             path.relpath(x, base_syspath) for x in data_syspath_list]
 
@@ -405,6 +418,7 @@ class TableDataAndImage(Directive):
                    'image': parse_text_list,
                    'base': directives.path,
                    'link': parse_text_list,
+                   'path-order': choice_from('sort', 'sort_r'),
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
@@ -415,12 +429,18 @@ class TableDataAndImage(Directive):
         #     - *_syspath is system path
         #     - *_relpath is relative path from `self._datadir`
         #     - *_absurl is url with leading slash
+        path_order = self.options.get('path-order', 'sort')
+        if path_order == 'sort_r':
+            glob_list_sorted = lambda x: sorted(x, reverse=True)
+        else:
+            glob_list_sorted = sorted
 
         base_syspath = path.join(self._datadir,
                                  self.options.get('base', ''))
         data_syspath_list = glob_list([path.join(base_syspath,
                                                  directives.uri(arg))
-                                       for arg in self.arguments])
+                                       for arg in self.arguments],
+                                      glob_list_sorted)
 
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])

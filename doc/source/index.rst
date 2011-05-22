@@ -77,6 +77,9 @@ Show data in table - :rst:dir:`table-data`
            This is the relative path of the ``%(path)s`` from the
            `base` directory.
 
+   path-order : {'sort', 'sort_r'}
+       Sort path or sort in the reversed order.
+
    trans : flag
        Transpose the table.
 
@@ -132,6 +135,9 @@ Show data and images in table - :rst:dir:`table-data-and-image`
        ``%(relpath)s``
            This is the relative path of the ``%(path)s`` from the
            `base` directory.
+
+   path-order : {'sort', 'sort_r'}
+       Sort path or sort in the reversed order.
 
 
    Example:
