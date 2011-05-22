@@ -1,9 +1,17 @@
 from setuptools import setup
 from distutils.command.build import build
 from distutils.cmd import Command
+from distutils import log
 import os
 import shutil
+try:
+    # check if BuildDoc is available
+    from sphinx.setup_command import BuildDoc
+    BUILD_SPHINX_AVAILABLE = True
+except ImportError:
+    BUILD_SPHINX_AVAILABLE = False
 import neorg
+
 
 data_list = ['schema.sql', 'templates/*.html'] + [
     os.path.join('%s' % d, '*.%s' % e)
@@ -12,9 +20,24 @@ data_list = ['schema.sql', 'templates/*.html'] + [
               'static/help/_source', 'static/help/_static',]]
 
 
+def mkdir(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
 class my_build(build):
+
+    def has_help_doc(self):
+        help_source = os.path.join('doc', 'source')
+        if os.path.exists(help_source):
+            return True
+        else:
+            log.info("'%s' does not exists. do not run update_help."
+                     % help_source)
+            return False
+
     sub_commands = [  # run update_help before any other sub_commands
-        ('update_help', lambda _: True),
+        ('update_help', has_help_doc),
         ] + build.sub_commands
 
 
@@ -29,26 +52,43 @@ class update_help(Command):
         pass
 
     def run(self):
+        sphinx_build_dir = os.path.join("doc", "build")
+        sphinx_source_static_dir = os.path.join("doc", "source", "_static")
+
+        # build directory is needed to be created before running build_sphinx
+        mkdir(sphinx_build_dir)
+        # suppress sphinx warning
+        mkdir(sphinx_source_static_dir)
         # run build_sphinx before copying
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
 
-        sphinx_build_dir = 'doc/build/html'
-        static_help = 'neorg/static/help'
+        sphinx_build_dir = os.path.join(sphinx_build_dir, 'html')
+        static_help = os.path.join('neorg', 'static', 'help')
         if os.path.exists(static_help):
             shutil.rmtree(static_help)
-        print "copying '%s' to '%s'" % (sphinx_build_dir, static_help)
+        log.info("copying '%s' to '%s'" % (sphinx_build_dir, static_help))
         shutil.copytree(sphinx_build_dir, static_help)
 
+    def has_sphinx(self):
+        if BUILD_SPHINX_AVAILABLE:
+            return True
+        else:
+            log.warn("sphinx is no available. do not run build_sphinx.")
+            return False
+
     sub_commands = [
-        ('build_sphinx', lambda _: True),
+        # Do not run build_sphinx if is not available
+        ('build_sphinx', has_sphinx),
         ]
 
 
-# build directory is needed to be created before running build_sphinx
-if not os.path.exists("doc/build"):
-    os.mkdir("doc/build")
-
+cmdclass = {
+    'build': my_build,
+    'update_help': update_help,
+    }
+if BUILD_SPHINX_AVAILABLE:
+    cmdclass.update(build_sphinx=BuildDoc)
 
 setup(
     name='neorg',
@@ -79,8 +119,5 @@ setup(
             'build_dir': ('setup.py', 'doc/build/'),
             },
         },
-    cmdclass={
-        'build': my_build,
-        'update_help': update_help,
-        },
+    cmdclass=cmdclass,
     )
