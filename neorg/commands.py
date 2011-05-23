@@ -1,8 +1,8 @@
-def serve(port, debug=None, browser=None):
+def serve(port, root=None, debug=None, browser=None):
     from neorg.web import app
     from neorg.config import load_config
     from neorg.wiki import register_neorg_directives
-    load_config(app)
+    load_config(app, dirpath=root)
     if debug is not None:
         app.config['DEBUG'] = debug
     if browser:
@@ -31,7 +31,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='Process some integers.')
+        description='NEOrg - Numerical Simulation Organizer')
     subparsers = parser.add_subparsers()
 
     # init
@@ -48,6 +48,10 @@ def main():
     parser_serve.add_argument(
         '-p', '--port', type=int, default=8000,
         help='port to listen (default: %(default)s)')
+    parser_serve.add_argument(
+        '-R', '--root',
+        help='root directory (where `.neorg/` exists)',
+        )
     parser_serve.add_argument(
         '-b', '--browser', action='store_true', default=False,
         help='open web browser',
