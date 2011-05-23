@@ -46,9 +46,9 @@ from neorg.data import DictTable
 # http://docutils.sourceforge.net/docs/howto/security.html
 SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 
-# it seems docuitls that docuitls needs upper limit for
+# it seems that docuitls needs upper limit for
 # `Directive.optional_arguments` attribute.
-# this is virtually infinite number for NEOrg.
+# OPTIONAL_ARGUMENTS_INF is virtually infinite number for NEOrg.
 # nobody wants to put args more than this (I hope)
 OPTIONAL_ARGUMENTS_INF = 10000
 
