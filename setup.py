@@ -69,7 +69,7 @@ class update_help(Command):
             if os.path.exists(static_help):
                 shutil.rmtree(static_help)
             log.info("copying '%s' to '%s'" % (sphinx_html_dir, static_help))
-            shutil.copytree(sphinx_build_dir, static_help)
+            shutil.copytree(sphinx_html_dir, static_help)
         else:
             log.warn("'%s' does not exists. '%s' is not updated"
                      % (sphinx_html_dir, static_help))
