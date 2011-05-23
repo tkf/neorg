@@ -236,23 +236,23 @@ class DictTable(object):
         >>> dt.append('B', dict(int=2, float=2.0, str="x", mix="b"))
         >>> dt.append('C', dict(int=3, float=-1.0, str="z"))
         >>> dt.sort_names_by_values(['int'])
-        >>> dt._name
+        >>> dt.names
         ['A', 'B', 'C']
         >>> dt.sort_names_by_values(['float'])
-        >>> dt._name
+        >>> dt.names
         ['C', 'B', 'A']
         >>> dt.sort_names_by_values(['str'])
-        >>> dt._name
+        >>> dt.names
         ['B', 'A', 'C']
         >>> dt.sort_names_by_values(['mix'])
-        >>> dt._name
+        >>> dt.names
         ['A', 'B', 'C']
         >>> dt2 = DictTable()
         >>> dt2.append('A', dict(int=0, float=3.0))
         >>> dt2.append('B', dict(int=0, float=2.0))
         >>> dt2.append('C', dict(int=0, float=-1.0))
         >>> dt2.sort_names_by_values(['int', 'float'])
-        >>> dt2._name
+        >>> dt2.names
         ['C', 'B', 'A']
 
         """
