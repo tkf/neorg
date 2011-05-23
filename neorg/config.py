@@ -41,6 +41,8 @@ def load_config(app, dirpath=None):
     dirpath = os.path.abspath(dirpath)
     app.config.from_pyfile(confpath(dirpath))
     magic = magicwords(dirpath)
+    app.config['NEORG_ROOT'] = magic['root']
+    app.config['NEORG_DIR'] = magic['neorg']
     for key in ['DATABASE', 'DATADIRPATH', 'HELPDIRPATH']:
         if key in app.config:
             app.config[key] = expandall(app.config[key] % magic)

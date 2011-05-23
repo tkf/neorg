@@ -325,9 +325,15 @@ def data_file(filepath):
     return send_from_directory(app.config['DATADIRPATH'], filepath)
 
 
+@app.route('/favicon.ico')
 @app.route('/favicon.ico/')
 def favicon():
-    return redirect(url_for('static', filename='favicon.ico'))
+    favicon_path = os.path.join(app.config['NEORG_DIR'], 'favicon.ico')
+    if os.path.exists(favicon_path):
+        return send_from_directory(app.config['NEORG_DIR'],
+                                   'favicon.ico')
+    else:
+        return redirect(url_for('static', filename='favicon.ico'))
 
 
 @app.route('/_help/<path:filename>')
