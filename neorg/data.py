@@ -223,6 +223,46 @@ class DictTable(object):
                 self.get_by_name(name), key, *args, **kwds)
         return data
 
+    def sort_names_by_values(self, key_list, reverse=False):
+        """
+        Sort stored names given list of key
+
+        >>> dt = DictTable()
+        >>> dt.append('A', dict(int=1, float=3.0, str="y", mix=1))
+        >>> dt.append('B', dict(int=2, float=2.0, str="x", mix="b"))
+        >>> dt.append('C', dict(int=3, float=-1.0, str="z"))
+        >>> dt.sort_names_by_values(['int'])
+        >>> dt._name
+        ['A', 'B', 'C']
+        >>> dt.sort_names_by_values(['float'])
+        >>> dt._name
+        ['C', 'B', 'A']
+        >>> dt.sort_names_by_values(['str'])
+        >>> dt._name
+        ['B', 'A', 'C']
+        >>> dt.sort_names_by_values(['mix'])
+        >>> dt._name
+        ['A', 'B', 'C']
+        >>> dt2 = DictTable()
+        >>> dt2.append('A', dict(int=0, float=3.0))
+        >>> dt2.append('B', dict(int=0, float=2.0))
+        >>> dt2.append('C', dict(int=0, float=-1.0))
+        >>> dt2.sort_names_by_values(['int', 'float'])
+        >>> dt2._name
+        ['C', 'B', 'A']
+
+        """
+        # use last ASCII character to say deficit value should come at last.
+        # maybe i should change this later using the `cmp` function.
+        deficit = chr(255)
+        def key(name):
+            vals = []
+            for keystr in key_list:
+                keytuple = self.parse_key(keystr)
+                vals.append(self._table.get(keytuple, {}).get(name, deficit))
+            return tuple(vals)
+        self._name.sort(key=key, reverse=reverse)
+
     @staticmethod
     def _identical(iterative):
         """
