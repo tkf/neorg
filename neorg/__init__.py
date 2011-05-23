@@ -17,5 +17,5 @@ __version__ = "0.0.1"
 __license__ = "MIT License"
 
 
-NEORG_DIR = '.neorg'
+NEORG_HIDDEN_DIR = '.neorg'
 CONFIG_FILE = 'conf.py'

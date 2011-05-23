@@ -1,5 +1,5 @@
 import os
-from neorg import NEORG_DIR, CONFIG_FILE
+from neorg import NEORG_HIDDEN_DIR, CONFIG_FILE
 
 
 class DefaultConfig(object):
@@ -17,16 +17,16 @@ class DefaultConfig(object):
 
 
 def neorgpath(dirpath):
-    return os.path.join(dirpath, NEORG_DIR)
+    return os.path.join(dirpath, NEORG_HIDDEN_DIR)
 
 
 def confpath(dirpath):
-    return os.path.join(dirpath, NEORG_DIR, CONFIG_FILE)
+    return os.path.join(dirpath, NEORG_HIDDEN_DIR, CONFIG_FILE)
 
 
 def magicwords(dirpath):
     return {
-        'neorg': os.path.join(dirpath, NEORG_DIR),
+        'neorg': os.path.join(dirpath, NEORG_HIDDEN_DIR),
         'root': dirpath,
         }
 
