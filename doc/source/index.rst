@@ -139,6 +139,10 @@ Show data and images in table - :rst:dir:`table-data-and-image`
    path-order : {'sort', 'sort_r'}
        Sort path or sort in the reversed order.
 
+   sort : text [, text]
+       A comma- or comma-separated list of key.
+       The table will be sorted by values of the keys.
+
 
    Example:
 

@@ -124,6 +124,10 @@ class DictTable(object):
     def __repr__(self):
         return 'DictTable(%r)' % self._original
 
+    @property
+    def names(self):
+        return self._name[:]  # return copy
+
     def append(self, name, dct):
         """Append a dict-like object with name"""
         self._name.append(name)

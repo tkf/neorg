@@ -419,6 +419,7 @@ class TableDataAndImage(Directive):
                    'base': directives.path,
                    'link': parse_text_list,
                    'path-order': choice_from('sort', 'sort_r'),
+                   'sort': parse_text_list,
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
     has_content = False
@@ -449,9 +450,11 @@ class TableDataAndImage(Directive):
         link = self.options.get('link')
 
         data_table = DictTable.from_path_list(data_syspath_list)
+        if 'sort' in self.options:
+            data_table.sort_names_by_values(self.options['sort'])
 
         rowdata = []
-        for data_syspath in data_syspath_list:
+        for data_syspath in data_table.names:
             data_relpath = path.relpath(data_syspath, self._datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
