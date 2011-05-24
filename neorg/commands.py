@@ -53,11 +53,12 @@ def main():
         help='root directory (where `.neorg/` exists)',
         )
     parser_serve.add_argument(
-        '-b', '--browser', action='store_true', default=False,
+        '-b', '--browser', action='store_true',
         help='open web browser',
         )
     parser_serve.add_argument(
-        '--debug', action='store_true')
+        '--debug', action='store_true', default=None,
+        help='set DEBUG=True to run in debug mode')
     parser_serve.set_defaults(func=serve)
 
     args = parser.parse_args()
