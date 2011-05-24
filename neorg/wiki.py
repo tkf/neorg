@@ -667,7 +667,7 @@ def setup_wiki(web=None, DictTable=None, glob_list=None):
     for cls in NEORG_TRANSFORMS:
         cls._web = web
         cls._DictTable = DictTable
-        cls._glob_list = glob_list
+        cls._glob_list = staticmethod(glob_list)
     for cls in NEORG_DIRECTIVES:
         cls._web = web
         cls._DictTable = DictTable
