@@ -48,8 +48,8 @@ def setup_app():
     app = web.app.test_client()
     web.init_db()
 
-    from neorg.wiki import register_neorg_directives, gene_html
-    register_neorg_directives(web.app.config['DATADIRPATH'], '/_data')
+    from neorg.wiki import setup_wiki, gene_html
+    setup_wiki()
     return (app, db_fd, gene_html)
 
 

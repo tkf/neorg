@@ -5,7 +5,7 @@ Usage
 =====
 
 1. Register directives defined here to the docutils internal using
-   `register_neorg_directives` function.
+   `setup_wiki` function.
    See `neorg.commands.serve` for the real usage.
 2. Call `gene_html` with rst text.
    See functions in `neorg.web` for the real usage.
@@ -13,19 +13,24 @@ Usage
 Internal
 ========
 
-Registration of the `Directive` classes is tricky, because they
-uses `self._datadir` (file path to the data directory) and
-`self._dataurlroot` (url-equivalent of the `self._datadir`).
-These two class attributes are set in the `register_neorg_directives`
-function before the registration.  Note that `self._dirc_name` is
-used to store the directive name to its class for ease of the
-registration.
+The class attribute `self._web` is used for accessing `neorg.web` from
+`nerog.wiki`.  This is stored in the `self` for the unit testing.
+Any mock object can be "injected" from the `setup_wiki` function.
+The class attribute `self._DictTable` is used for the same reason.
+Note that `self._dirc_name` is used to store the directive name to its
+class for ease of the registration.
 
 Definition and the usage of the `Writer` and the `Reader` (and
 `Transform` classes in th Reader class) are pretty straightforward.
 These are written in the docstring of `publish_programmatically` in
 `docutils.core` which is referenced from `publish_parts` (the function
 used here).
+
+To pass the information from `neorg.web` to `neorg.wiki`, the
+`settings_overrides` argument of the `publish_parts` is used.
+This is usually command line options to the docutils tools.
+Any object can be passed to `settings_overrides`.  This settings can
+be accessed by `self.document.settings` from the `Transform` classes.
 
 """
 
@@ -38,8 +43,6 @@ from docutils import nodes, writers
 
 from os import path
 from glob import glob
-
-from neorg.data import DictTable
 
 
 # disable docutils security hazards:
@@ -98,6 +101,7 @@ class ProcessListPages(Transform):
 
 class ProcessDictDiff(Transform):
     _web = None  # needs override
+    _DictTable = None  # needs override
     default_priority = 0
 
     def apply(self):
@@ -119,7 +123,7 @@ class ProcessDictDiff(Transform):
                                       glob_list_sorted)
         link = node.get('link', [])
 
-        data_table = DictTable.from_path_list(data_syspath_list)
+        data_table = self._DictTable.from_path_list(data_syspath_list)
         if node.hasattr('sort'):
             data_table.sort_names_by_values(node.get('sort'))
 
@@ -427,8 +431,8 @@ class TableData(Directive):
     """
 
     _dirc_name = 'table-data'
-    _datadir = None  # needs override
-    _dataurlroot = None  # needs override
+    _web = None  # needs override
+    _DictTable = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -445,15 +449,16 @@ class TableData(Directive):
     def run(self):
         # naming note:
         #     - *_syspath is system path
-        #     - *_relpath is relative path from `self._datadir`
+        #     - *_relpath is relative path from `datadir`
         #     - *_absurl is url with leading slash
+        datadir = self._web.app.config['DATADIRPATH']
         path_order = self.options.get('path-order', 'sorted')
         if path_order == 'sort_r':
             glob_list_sorted = lambda x: sorted(x, reverse=True)
         else:
             glob_list_sorted = sorted
 
-        base_syspath = path.join(self._datadir,
+        base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         data_syspath_list = glob_list([path.join(base_syspath,
                                                  directives.uri(arg))
@@ -466,15 +471,15 @@ class TableData(Directive):
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
-        data_table = DictTable.from_path_list(data_syspath_list,
-                                              from_base_list)
+        data_table = self._DictTable.from_path_list(data_syspath_list,
+                                                    from_base_list)
         data_table = data_table.filter_by_fnmatch(data_keys)
         rowdata = data_table.as_list()
         if link is not None:
             rowdata[0].append('link(s)')
 
         for (data_syspath, row) in zip(data_syspath_list, rowdata[1:]):
-            data_relpath = path.relpath(data_syspath, self._datadir)
+            data_relpath = path.relpath(data_syspath, datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
             link_magic = {
@@ -500,8 +505,8 @@ class TableDataAndImage(Directive):
     """
 
     _dirc_name = 'table-data-and-image'
-    _datadir = None  # needs override
-    _dataurlroot = None  # needs override
+    _web = None  # needs override
+    _DictTable = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -520,15 +525,17 @@ class TableDataAndImage(Directive):
     def run(self):
         # naming note:
         #     - *_syspath is system path
-        #     - *_relpath is relative path from `self._datadir`
+        #     - *_relpath is relative path from `datadir`
         #     - *_absurl is url with leading slash
+        datadir = self._web.app.config['DATADIRPATH']
+        datadirurl = self._web.app.config['DATADIRURL']
         path_order = self.options.get('path-order', 'sort')
         if path_order == 'sort_r':
             glob_list_sorted = lambda x: sorted(x, reverse=True)
         else:
             glob_list_sorted = sorted
 
-        base_syspath = path.join(self._datadir,
+        base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         data_syspath_list = glob_list([path.join(base_syspath,
                                                  directives.uri(arg))
@@ -541,16 +548,16 @@ class TableDataAndImage(Directive):
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
-        data_table = DictTable.from_path_list(data_syspath_list)
+        data_table = self._DictTable.from_path_list(data_syspath_list)
         if 'sort' in self.options:
             data_table.sort_names_by_values(self.options['sort'])
 
         rowdata = []
         for data_syspath in data_table.names:
-            data_relpath = path.relpath(data_syspath, self._datadir)
+            data_relpath = path.relpath(data_syspath, datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
-            parent_absurl = path.join(self._dataurlroot, parent_relpath)
+            parent_absurl = path.join(datadirurl, parent_relpath)
             link_magic = {
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
@@ -599,8 +606,8 @@ class DictDiff(Directive):
 class FindImages(Directive):
 
     _dirc_name = 'find-images'
-    _datadir = None  # needs override
-    _dataurlroot = None  # needs override
+    _web = None  # needs override
+    _DictTable = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -611,10 +618,12 @@ class FindImages(Directive):
     def run(self):
         # naming note:
         #     - *_syspath is system path
-        #     - *_relpath is relative path from `self._datadir`
+        #     - *_relpath is relative path from `datadir`
         #     - *_absurl is url with leading slash
+        datadir = self._web.app.config['DATADIRPATH']
+        datadirurl = self._web.app.config['DATADIRURL']
 
-        base_syspath = path.join(self._datadir,
+        base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         image_syspath_list = glob_list([path.join(base_syspath,
                                                   directives.uri(arg))
@@ -623,13 +632,13 @@ class FindImages(Directive):
         def gene_image(relpath):
             image_node = nodes.image(
                 rawsource='',
-                uri=path.join(self._dataurlroot, relpath))
+                uri=path.join(datadirurl, relpath))
             image_node['classes'].append('neorg-find-images-image')
             return image_node
 
         node_list = []
         for image_syspath in image_syspath_list:
-            image_relpath = path.relpath(image_syspath, self._datadir)
+            image_relpath = path.relpath(image_syspath, datadir)
             node_list += [gene_paragraph(image_relpath),
                           gene_image(image_relpath)]
         return node_list
@@ -647,14 +656,17 @@ NEORG_DIRECTIVES = [
     ]
 
 
-def register_neorg_directives(datadir, dataurlroot, web=None):
+def setup_wiki(web=None, DictTable=None):
     if web is None:
         from neorg import web
+    if DictTable is None:
+        from neorg.data import DictTable
     for cls in NEORG_TRANSFORMS:
         cls._web = web
+        cls._DictTable = DictTable
     for cls in NEORG_DIRECTIVES:
-        cls._datadir = datadir
-        cls._dataurlroot = dataurlroot
+        cls._web = web
+        cls._DictTable = DictTable
         directives.register_directive(cls._dirc_name, cls)
 
 
