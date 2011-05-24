@@ -18,6 +18,7 @@ from nose.tools import raises
 
 from neorg import web
 from neorg.config import DefaultConfig
+from neorg.tests.utils import trim
 
 TMP_PREFIX = 'neorg-tmp'
 
@@ -272,6 +273,34 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         import neorg
         title = 'NEOrg v%s documentation' % neorg.__version__
         assert title in response.data
+
+    def check_temp(self, base_path, page_text, num):
+        assert num > 0
+        temp_path = urljoin(base_path, *(['<temp>'] * num))
+        temp_text = page_text + "\n" + trim("""
+        path: {{ path }}
+        relpath: {{ relpath }}
+        """) + "\n" + "\n".join(
+            "args[%(i)d]: {{ args[%(i)d] }}" % {'i': i}
+            for i in range(num))
+
+        self.check_save(temp_path, temp_text)
+
+        args = ['arg%d' % i for i in range(num)]
+        page_path = urljoin(base_path, *args)
+        response = self.app.get(page_path + '/')
+        for (i, a) in enumerate(args):
+            assert "args[%d]: %s" % (i, a) in response.data
+        assert "path: %s" % page_path in response.data
+        assert "relpath: /%s" % '/'.join(args) in response.data
+
+    def test_temp(self):
+        page_root = 'TestTempRoot'
+        num_max = 3
+        for (page_relpath, page_text) in self.gene_pages("TestTemp"):
+            page_path = urljoin(page_root, page_relpath)
+            for num in range(1, num_max + 1):
+                yield (self.check_temp, page_path, page_text, num)
 
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):
