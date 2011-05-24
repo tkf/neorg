@@ -167,6 +167,14 @@ Find images - :rst:dir:`find-images`
        the arguments and `{BASE}` is the value of this option.
 
 
+List Pages - :rst:dir:`list-pages`
+----------------------------------
+
+.. rst:directive:: .. list-pages::
+
+   Insert list of sub-pages.
+
+
 Template page - ``<temp>``
 ==========================
 

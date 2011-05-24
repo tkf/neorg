@@ -173,7 +173,7 @@ def get_page_text(page_path):
 def get_page_text_and_html(page_path):
     page_text = get_page_text(page_path)
     if page_text:
-        page_html = gene_html(page_text)
+        page_html = gene_html(page_text, page_path)
     else:
         page_html = ''
     return (page_text, page_html)
@@ -226,7 +226,7 @@ def save(page_path):
         return redirect(url_for("page", page_path=page_path))
     elif request.form.get('preview') == 'Preview':
         page_text = request.form['page_text']
-        page_html = gene_html(page_text)
+        page_html = gene_html(page_text, page_path)
         flash('Previewing... Not yet saved!')
         return render_template(
             "edit.html",
@@ -279,7 +279,7 @@ def gene_from_template(page_path):
             'relpath': relpath_from_temp(page_path, temp_path),
             'args': match.groups(),
             })
-        page_html = gene_html(page_text)
+        page_html = gene_html(page_text, page_path)
         return render_template("page.html",
                                title=page_path or ROOT_TITLE,
                                temp_path=temp_path,
@@ -287,11 +287,14 @@ def gene_from_template(page_path):
                                page_html=page_html)
 
 
+def list_descendants(page_path):
+    return map('./{0}'.format, sorted(find_descendants(page_path)))
+
 
 @app.route('/_descendants', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_descendants')
 def descendants(page_path):
-    link_list = (map('./{0}'.format, sorted(find_descendants(page_path))))
+    link_list = list_descendants(page_path)
     return render_template("descendants.html",
                            title='Descendants - ' + (page_path or ROOT_TITLE),
                            link_list=link_list,
@@ -320,7 +323,7 @@ def old(page_path, history_id):
     page_text = g.db.execute(
         'select page_text from page_history where history_id = ?',
         [history_id]).fetchone()
-    page_html = gene_html(page_text[0])
+    page_html = gene_html(page_text[0], page_path)
     return render_template("page.html",
                            title=page_path or ROOT_TITLE,
                            page_path=page_path,

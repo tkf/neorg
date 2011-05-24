@@ -53,6 +53,10 @@ SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 OPTIONAL_ARGUMENTS_INF = 10000
 
 
+class list_pages(nodes.Admonition, nodes.Element):
+    pass
+
+
 class AddPageLinks(Transform):
     """
     Adds all unknown referencing names as the links to the other pages
@@ -71,11 +75,28 @@ class AddPageLinks(Transform):
                 )
 
 
+class ProcessListPages(Transform):
+    _web = None  # needs override
+    default_priority = 0
+
+    def apply(self):
+        nodes_list_pages = list(self.document.traverse(list_pages))
+        if nodes_list_pages:
+            page_path = self.document.settings.neorg_page_path
+            page_list = self._web.list_descendants(page_path)
+            for node in nodes_list_pages:
+                title = 'List of Pages'
+                admonition = nodes.admonition()
+                admonition += nodes.title(title, title)
+                admonition += gene_link_list(page_list)
+                node.replace_self(admonition)
+
+
 class Reader(standalone.Reader):
 
     def get_transforms(self):
         return standalone.Reader.get_transforms(self) + [
-            AddPageLinks,
+            AddPageLinks, ProcessListPages,
             ]
 
 
@@ -522,17 +543,34 @@ class FindImages(Directive):
         return node_list
 
 
-def register_neorg_directives(datadir, dataurlroot):
-    for cls in [TableData, TableDataAndImage, FindImages]:
+class ListPages(Directive):
+    _dirc_name = 'list-pages'
+
+    def run(self):
+        return [list_pages('')]
+
+
+def register_neorg_directives(datadir, dataurlroot, web=None):
+    if web is None:
+        from neorg import web
+    for cls in [ProcessListPages]:
+        cls._web = web
+    for cls in [TableData, TableDataAndImage, FindImages, ListPages]:
         cls._datadir = datadir
         cls._dataurlroot = dataurlroot
         directives.register_directive(cls._dirc_name, cls)
 
 
-def gene_html(text):
+def gene_html(text, page_path=None):
     from docutils.core import publish_parts
+    settings_overrides = SAFE_DOCUTILS.copy()
+    settings_overrides.update(
+        # these data can be accessed from `self.document.settings`
+        # of the Transform classes
+        neorg_page_path=page_path,
+        )
     return publish_parts(
         text,
         writer=Writer(),
         reader=Reader(),
-        settings_overrides=SAFE_DOCUTILS)['html_body']
+        settings_overrides=settings_overrides)['html_body']
