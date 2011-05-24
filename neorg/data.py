@@ -431,11 +431,12 @@ class DictTable(object):
         dt = cls()
         for (path, name) in zip(path_list, name_list):
             try:
-                dt.append(name, load_any(path))
+                dt.append(name, cls.load_any(path))
             except ValueError:
                 pass
         return dt
 
+    load_any = staticmethod(load_any)
 
 
 def get_nested(dct, dictpath, sep='.'):

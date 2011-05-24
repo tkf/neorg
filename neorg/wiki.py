@@ -102,6 +102,7 @@ class ProcessListPages(Transform):
 class ProcessDictDiff(Transform):
     _web = None  # needs override
     _DictTable = None  # needs override
+    _glob_list = None  # needs override
     default_priority = 0
 
     def apply(self):
@@ -117,10 +118,10 @@ class ProcessDictDiff(Transform):
             glob_list_sorted = sorted
         datadir = self._web.app.config['DATADIRPATH']
         base_syspath = path.join(datadir, node.get('base', ''))
-        data_syspath_list = glob_list([path.join(base_syspath,
-                                                 directives.uri(arg))
-                                       for arg in arguments],
-                                      glob_list_sorted)
+        data_syspath_list = self._glob_list(
+            [path.join(base_syspath,
+                       directives.uri(arg)) for arg in arguments],
+            glob_list_sorted)
         link = node.get('link', [])
 
         data_table = self._DictTable.from_path_list(data_syspath_list)
@@ -656,14 +657,17 @@ NEORG_DIRECTIVES = [
     ]
 
 
-def setup_wiki(web=None, DictTable=None):
+def setup_wiki(web=None, DictTable=None, glob_list=None):
     if web is None:
         from neorg import web
     if DictTable is None:
         from neorg.data import DictTable
+    if glob_list is None:
+        from neorg.wiki import glob_list
     for cls in NEORG_TRANSFORMS:
         cls._web = web
         cls._DictTable = DictTable
+        cls._glob_list = glob_list
     for cls in NEORG_DIRECTIVES:
         cls._web = web
         cls._DictTable = DictTable

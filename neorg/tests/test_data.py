@@ -1,6 +1,7 @@
 from neorg.data import DictTable
 
 from nose.tools import raises
+from neorg.tests.utils import CheckData
 
 
 def gene_dict(*keys, **replace):
@@ -13,13 +14,6 @@ def gene_dict(*keys, **replace):
     keys = [parse_key(k) for k in keys]
     vals = [gene_val(keytuple) for keytuple in keys]
     return DictTable()._gene_dict(zip(keys, vals))
-
-
-class CheckData(object):
-
-    def test(self):
-        for args in self.data:
-            yield (self.check,) + tuple(args)
 
 
 class TestGeneDict(CheckData):
