@@ -160,6 +160,25 @@ def after_request(response):
     return response
 
 
+def get_page_text(page_path):
+    row = g.db.execute(
+        'select page_text from pages where page_path = ?',
+        [page_path]).fetchone()
+    if row:
+        return row[0]
+    else:
+        return None
+
+
+def get_page_text_and_html(page_path):
+    page_text = get_page_text(page_path)
+    if page_text:
+        page_html = gene_html(page_text)
+    else:
+        page_html = ''
+    return (page_text, page_html)
+
+
 @app.route('/_delete', defaults={'page_path': ''}, methods=['POST'])
 @app.route('/<path:page_path>/_delete', methods=['POST'])
 def delete(page_path):
@@ -182,23 +201,18 @@ def delete(page_path):
 @app.route('/_confirm_delete', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_confirm_delete')
 def confirm_delete(page_path):
-    page_text = g.db.execute(
-        'select page_text from pages where page_path = ?',
-        [page_path]).fetchone()
+    (page_text, page_html) = get_page_text_and_html(page_path)
     return render_template("confirm_delete.html",
                            title='Delete this page - ' + (page_path or ROOT_TITLE),
                            page_path=page_path,
-                           page_html=gene_html(page_text[0]) if page_text else '')
+                           page_html=page_html)
 
 
 @app.route('/_save', defaults={'page_path': ''}, methods=['POST'])
 @app.route('/<path:page_path>/_save', methods=['POST'])
 def save(page_path):
     if request.form.get('save') == 'Save':
-        page_text_old = g.db.execute(
-            'select page_text from pages where page_path = ?',
-            [page_path]).fetchone()
-        if page_text_old and page_text_old[0] == request.form['page_text']:
+        if get_page_text(page_path) == request.form['page_text']:
             flash('No change was found.')
             return redirect(url_for("page", page_path=page_path))
         g.db.execute(
@@ -230,24 +244,19 @@ def save(page_path):
 @app.route('/_edit', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_edit')
 def edit(page_path):
-    page_text = g.db.execute(
-        'select page_text from pages where page_path = ?',
-        [page_path]).fetchone()
+    (page_text, page_html) = get_page_text_and_html(page_path)
     return render_template("edit.html",
                            title='Edit - ' + (page_path or ROOT_TITLE),
                            page_path=page_path,
-                           page_html=gene_html(page_text[0]) if page_text else '',
-                           page_text=page_text[0] if page_text else '')
+                           page_html=page_html,
+                           page_text=page_text if page_text else '')
 
 
 @app.route('/', defaults={'page_path': ''})
 @app.route('/<path:page_path>/')
 def page(page_path):
-    page_text = g.db.execute(
-        'select page_text from pages where page_path = ?',
-        [page_path]).fetchone()
+    (page_text, page_html) = get_page_text_and_html(page_path)
     if page_text:
-        page_html = gene_html(page_text[0])
         return render_template("page.html",
                                title=page_path or ROOT_TITLE,
                                page_path=page_path,
@@ -263,10 +272,8 @@ def page(page_path):
 def gene_from_template(page_path):
     (temp_path, match) = find_temp_path(page_path)
     if match:
-        temp_text = g.db.execute(
-            'select page_text from pages where page_path = ?',
-            [temp_path]).fetchone()
-        template = jinja2.Environment().from_string(temp_text[0])
+        temp_text = get_page_text(temp_path)
+        template = jinja2.Environment().from_string(temp_text)
         page_text = template.render({
             'path': page_path,
             'relpath': relpath_from_temp(page_path, temp_path),
