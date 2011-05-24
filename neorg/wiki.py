@@ -57,6 +57,10 @@ class list_pages(nodes.Admonition, nodes.Element):
     pass
 
 
+class dictdiff(nodes.General, nodes.Element):
+    pass
+
+
 class AddPageLinks(Transform):
     """
     Adds all unknown referencing names as the links to the other pages
@@ -92,12 +96,79 @@ class ProcessListPages(Transform):
                 node.replace_self(admonition)
 
 
+class ProcessDictDiff(Transform):
+    _web = None  # needs override
+    default_priority = 0
+
+    def apply(self):
+        for node in self.document.traverse(dictdiff):
+            self._replace_node(node)
+
+    def _replace_node(self, node):
+        arguments = node.get('arguments')
+        path_order = node.get('path-order', 'sorted')
+        if path_order == 'sort_r':
+            glob_list_sorted = lambda x: sorted(x, reverse=True)
+        else:
+            glob_list_sorted = sorted
+        datadir = self._web.app.config['DATADIRPATH']
+        base_syspath = path.join(datadir, node.get('base', ''))
+        data_syspath_list = glob_list([path.join(base_syspath,
+                                                 directives.uri(arg))
+                                       for arg in arguments],
+                                      glob_list_sorted)
+        link = node.get('link', [])
+
+        data_table = DictTable.from_path_list(data_syspath_list)
+        if node.hasattr('sort'):
+            data_table.sort_names_by_values(node.get('sort'))
+
+        diff_data =  data_table.diff(include=node.get('include'),
+                                     exclude=node.get('exclude'))
+
+        keylist = sorted(diff_data)
+        table_data = [[''] + keylist + ['link(s)']]
+        for data_syspath in data_table.names:
+            data_relpath = path.relpath(data_syspath, datadir)
+            parent_syspath = path.dirname(data_syspath)
+            parent_relpath = path.dirname(data_relpath)
+
+            link_magic = {
+                'path': parent_relpath,
+                'relpath': path.relpath(parent_syspath,
+                                        base_syspath),
+                }
+            link_nodes = gene_links_in_paragraph(
+                [l % link_magic for l in link])
+            from_base = path.relpath(data_syspath, base_syspath)
+            table_data.append(
+                [from_base] +
+                [diff_data[keystr].get(data_syspath, '')
+                 for keystr in keylist] +
+                [link_nodes])
+
+        if node.hasattr('trans'):
+            table_data = zip(*table_data)
+
+        table_node = gene_table(
+            table_data,
+            title=title_from_path(
+                arguments,
+                node.get('base'),
+                'Diff of data found in: %s',
+                ))
+        node.replace_self(table_node)
+
+
+NEORG_TRANSFORMS = [
+    AddPageLinks, ProcessListPages, ProcessDictDiff,
+    ]
+
+
 class Reader(standalone.Reader):
 
     def get_transforms(self):
-        return standalone.Reader.get_transforms(self) + [
-            AddPageLinks, ProcessListPages,
-            ]
+        return standalone.Reader.get_transforms(self) + NEORG_TRANSFORMS
 
 
 class Writer(html4css1.Writer):
@@ -504,6 +575,27 @@ class TableDataAndImage(Directive):
                            colwidths=colwidths)]
 
 
+class DictDiff(Directive):
+    _dirc_name = 'dictdiff'
+
+    required_arguments = 1
+    optional_arguments = OPTIONAL_ARGUMENTS_INF
+    final_argument_whitespace = True
+    option_spec = {'base': directives.path,
+                   'link': parse_text_list,
+                   'include': parse_text_list,
+                   'exclude': parse_text_list,
+                   'sort': parse_text_list,
+                   'path-order': choice_from('sort', 'sort_r'),
+                   'trans': directives.flag}
+    has_content = False
+
+    def run(self):
+        return [dictdiff(rawsource=self.block_text,
+                         arguments=self.arguments,
+                         **self.options)]
+
+
 class FindImages(Directive):
 
     _dirc_name = 'find-images'
@@ -550,12 +642,17 @@ class ListPages(Directive):
         return [list_pages('')]
 
 
+NEORG_DIRECTIVES = [
+    TableData, TableDataAndImage, FindImages, ListPages, DictDiff,
+    ]
+
+
 def register_neorg_directives(datadir, dataurlroot, web=None):
     if web is None:
         from neorg import web
-    for cls in [ProcessListPages]:
+    for cls in NEORG_TRANSFORMS:
         cls._web = web
-    for cls in [TableData, TableDataAndImage, FindImages, ListPages]:
+    for cls in NEORG_DIRECTIVES:
         cls._datadir = datadir
         cls._dataurlroot = dataurlroot
         directives.register_directive(cls._dirc_name, cls)
