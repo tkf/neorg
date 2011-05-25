@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from docutils import nodes, utils
 from mock import Mock
 
@@ -103,3 +105,15 @@ class TestDictDiff(CheckData):
 
         for key in dictdiff:
             assert key in page_html
+
+
+class TestConvTexts(CheckData):
+
+    # texts/*.txt should be converted w/o system error
+    textdir = os.path.join(os.path.dirname(__file__), 'texts')
+    data = [
+        (os.path.relpath(abspath, textdir),) for abspath in
+        glob(os.path.join(textdir, '*.txt'))]
+
+    def check(self, path):
+        gene_html(file(os.path.join(self.textdir, path)).read())

@@ -13,7 +13,7 @@ except ImportError:
 import neorg
 
 
-data_list = ['schema.sql', 'templates/*.html'] + [
+data_list = ['schema.sql', 'templates/*.html', 'tests/texts/*.txt'] + [
     os.path.join('%s' % d, '*.%s' % e)
     for e in ['css', 'html', 'ico', 'inv', 'js', 'png', 'txt']
     for d in ['static', 'static/help',
