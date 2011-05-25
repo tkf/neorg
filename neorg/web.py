@@ -16,13 +16,13 @@ def regex_from_temp_path(path):
 
     >>> regex_from_temp_path('/non/temp/url/')
     '^/non/temp/url/$'
-    >>> regex_from_temp_path('/just/one/<temp>/')
+    >>> regex_from_temp_path('/just/one/_temp_/')
     '^/just/one/([^/]*)/$'
-    >>> regex_from_temp_path('/try/two/<temp>/<temp>/')
+    >>> regex_from_temp_path('/try/two/_temp_/_temp_/')
     '^/try/two/([^/]*)/([^/]*)/$'
 
     """
-    return '^%s$' % path.replace('<temp>', '([^/]*)')
+    return '^%s$' % path.replace('_temp_', '([^/]*)')
 
 
 def match_temp_path(path, temp_path_list):
@@ -30,17 +30,17 @@ def match_temp_path(path, temp_path_list):
     Returs matched template path and the matched object
 
     >>> (temp_path, match) = match_temp_path(
-    ...    '/my/url', ['/some/url', '/my/<temp>', '/<temp>'])
+    ...    '/my/url', ['/some/url', '/my/_temp_', '/_temp_'])
     ...
     >>> temp_path
-    '/my/<temp>'
+    '/my/_temp_'
     >>> match.groups()
     ('url',)
     >>> (temp_path, match) = match_temp_path(
-    ...    '/my/url', ['/some/url', '/my/<temp>', '/<temp>/<temp>'])
+    ...    '/my/url', ['/some/url', '/my/_temp_', '/_temp_/_temp_'])
     ...
     >>> temp_path
-    '/my/<temp>'
+    '/my/_temp_'
     >>> match.groups()
     ('url',)
 
@@ -63,26 +63,26 @@ def find_temp_path(path):
 
 def temp_parent_path(temp_path):
     """
-    The path of the parent page of the leftmost ``<temp>`` page
+    The path of the parent page of the leftmost ``_temp_`` page
 
-    >>> temp_parent_path('/parent/<temp>/')
+    >>> temp_parent_path('/parent/_temp_/')
     '/parent/'
-    >>> temp_parent_path('/parent/<temp>/complicated/<temp>')
+    >>> temp_parent_path('/parent/_temp_/complicated/_temp_')
     '/parent/'
 
     """
-    i = temp_path.find('/<temp>')
+    i = temp_path.find('/_temp_')
     if i >= 0:
         return temp_path[:i] + '/'
     else:
-        raise ValueError("cannot find '<temp>' in '%s'" % temp_path)
+        raise ValueError("cannot find '_temp_' in '%s'" % temp_path)
 
 
 def relpath_from_temp(page_path, temp_path):
     """
-    Relative path from the parent of the leftmost ``<temp>`` page
+    Relative path from the parent of the leftmost ``_temp_`` page
 
-    >>> relpath_from_temp('/parent/generated', '/parent/<temp>')
+    >>> relpath_from_temp('/parent/generated', '/parent/_temp_')
     '/generated'
 
     """

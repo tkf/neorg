@@ -221,20 +221,20 @@ List Pages - :rst:dir:`list-pages`
    Insert list of sub-pages.
 
 
-Template page - ``<temp>``
+Template page - ``_temp_``
 ==========================
 
-The page which include ``<temp>`` in its URL is the template page.
+The page which include ``_temp_`` in its URL is the template page.
 The template page is used for generating page which is not exists
 but the template page exists at the same level of the URL.
 
 Example.:
 
-    (a) ``/my/page/<temp>/``
-    (b) ``/my/page/<temp>/<temp>/``
-    (c) ``/my/page/<temp>/images/``
-    (d) ``/my/page/<temp>/subdata/<temp>/``
-    (e) ``/my/page/<temp>/<temp>/subdata``
+    (a) ``/my/page/_temp_/``
+    (b) ``/my/page/_temp_/_temp_/``
+    (c) ``/my/page/_temp_/images/``
+    (d) ``/my/page/_temp_/subdata/_temp_/``
+    (e) ``/my/page/_temp_/_temp_/subdata``
 
     * ``/my/page/2011-05-21/`` matches to (a)
     * ``/my/page/2011-05-21/some-data/`` matches to (b)
@@ -245,7 +245,7 @@ Example.:
 
 
 ``{{ args[N] }}`` (where ``N`` is an integer)
-    N-th replacement of the ``<temp>`` in the URL.
+    N-th replacement of the ``_temp_`` in the URL.
     For example, at the page ``/my/page/2011-05-21/subdata/000/``
     in the above example, ``{{ args[0] }}`` and ``{{ args[1] }}``
     will be replaced by ``2011-05-21`` and ``000``.
@@ -255,4 +255,4 @@ Example.:
 
 ``{{ relpath }}``
     This will be replaced by the relative path from the parent page of
-    the leftmost ``<temp>`` page.
+    the leftmost ``_temp_`` page.

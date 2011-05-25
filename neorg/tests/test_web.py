@@ -276,7 +276,7 @@ class TestNEOrgWeb(TestNEOrgWebBase):
 
     def check_temp(self, base_path, page_text, num):
         assert num > 0
-        temp_path = urljoin(base_path, *(['<temp>'] * num))
+        temp_path = urljoin(base_path, *(['_temp_'] * num))
         temp_text = page_text + "\n" + trim("""
         path: {{ path }}
         relpath: {{ relpath }}
