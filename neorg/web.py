@@ -227,7 +227,10 @@ def save(page_path):
     elif request.form.get('preview') == 'Preview':
         page_text = request.form['page_text']
         page_html = gene_html(page_text, page_path)
-        flash('Previewing... Not yet saved!')
+        if get_page_text(page_path) == page_text:
+            flash('Previewing... No change was found.')
+        else:
+            flash('Previewing... Not yet saved!')
         return render_template(
             "edit.html",
             title='Preview - ' + (page_path or ROOT_TITLE),
