@@ -57,37 +57,56 @@ SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 OPTIONAL_ARGUMENTS_INF = 10000
 
 
-def convert_page_path(page_text):
-    """
-    Pre-process `page_text` to change the "page_path" to the links.
-
-    >>> convert_page_path('/this/is/page/path/')
-    '`/this/is/page/path/ </this/is/page/path/>`_'
-    >>> convert_page_path('./this/is/page/path/')
-    '`./this/is/page/path/ <./this/is/page/path/>`_'
-    >>> convert_page_path('../this/is/page/path/')
-    '`../this/is/page/path/ <../this/is/page/path/>`_'
-    >>> convert_page_path('/this/is/NOT/page/path')
-    '/this/is/NOT/page/path'
-    >>> convert_page_path('this/is/NOT/page/path/')
-    'this/is/NOT/page/path/'
-    >>> convert_page_path('/a/ /b/ /c/')
-    '`/a/ </a/>`_ `/b/ </b/>`_ `/c/ </c/>`_'
-
-    """
-    # convert twice for "/b/" in "/a/ /b/ /c/"
-    new1_page_text = _RE_PAGE_PATH.sub(_REPL_PAGE_PATH, page_text)
-    new2_page_text = _RE_PAGE_PATH.sub(_REPL_PAGE_PATH, new1_page_text)
-    return new2_page_text
+def convert_page_path_to_nodes(text, node_list=[]):
+    split = _RE_PAGE_PATH.split(text, maxsplit=1)
+    if len(split) == 7:
+        pre = ''.join(split[:2])
+        page_path = split[2]
+        rest = ''.join(split[-2:])
+        new_node_list = (
+            node_list + [nodes.Text(pre)] + list(gene_link(page_path)))
+        return convert_page_path_to_nodes(rest, new_node_list)
+    elif len(split) == 1:
+        return node_list + [nodes.Text(text)]
 
 _RE_PAGE_PATH = re.compile(
     r'(?P<head>^|\s)'
     r'(?P<page_path>(\.{0,2}/)+([a-zA-Z0-9][a-zA-Z0-9_\-\.\+]*/)*)'
-    r'(?P<tail>$|[\s\.!\?;,])')
-_REPL_PAGE_PATH = (
-    r'\g<head>`'
-    r'\g<page_path> <\g<page_path>>`'
-    r'_\g<tail>')
+    r'(?P<tail>$|[\s\.!\?:;,])')
+
+
+def condition_page_path(nd):
+    return not isinstance(nd.parent, (nodes.FixedTextElement,
+                                      nodes.reference,
+                                      nodes.footnote_reference,
+                                      nodes.citation_reference,
+                                      nodes.substitution_reference,
+                                      nodes.title_reference))
+
+
+class AdHocInlineMarkup(Transform):
+    """
+    Adds simple in-line markup to ReST
+
+    `cond_conv_list` attribute is a list of pair of the condition and
+    the convert function. The condition function determines whether
+    the conversion is needed for the given Text node. The convert
+    function converts the given text to the list of nodes.
+
+    """
+    default_priority = 0
+
+    cond_conv_list = [
+        (condition_page_path, convert_page_path_to_nodes),
+        ]
+
+    def apply(self):
+
+        for (cond, conv) in self.cond_conv_list:
+            _cond = lambda nd: isinstance(nd, nodes.Text) and cond(nd)
+            for node in self.document.traverse(_cond):
+                new_node_list = conv(node.astext())
+                node.parent.replace(node, new_node_list)
 
 
 class list_pages(nodes.Admonition, nodes.Element):
@@ -182,7 +201,7 @@ class ProcessDictDiff(Transform):
 
 
 NEORG_TRANSFORMS = [
-    ProcessListPages, ProcessDictDiff,
+    AdHocInlineMarkup, ProcessListPages, ProcessDictDiff,
     ]
 
 
@@ -699,7 +718,7 @@ def gene_html(text, page_path=None):
         neorg_page_path=page_path,
         )
     return publish_parts(
-        convert_page_path(text),
+        text,
         writer=Writer(),
         reader=Reader(),
         settings_overrides=settings_overrides)['html_body']
