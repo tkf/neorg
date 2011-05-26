@@ -75,10 +75,11 @@ class AddPageLinks(Transform):
         for refname in (set(self.document.refnames) -
                         set(self.document.nameids)):
             reference = self.document.refnames[refname][0]
+            unknown = reference['refname']
             self.document += nodes.target(
-                ids=[nodes.make_id(reference['name'])],
-                names=[nodes.fully_normalize_name(reference['name'])],
-                refuri=reference['name'],
+                ids=[nodes.make_id(unknown)],
+                names=[nodes.fully_normalize_name(unknown)],
+                refuri=unknown,
                 )
 
 
