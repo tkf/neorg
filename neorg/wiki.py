@@ -34,6 +34,7 @@ be accessed by `self.document.settings` from the `Transform` classes.
 
 """
 
+import re
 from docutils.parsers.rst import directives, Directive
 from docutils.parsers.rst.directives.images import Image
 from docutils.readers import standalone
@@ -56,31 +57,45 @@ SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 OPTIONAL_ARGUMENTS_INF = 10000
 
 
+def convert_page_path(page_text):
+    """
+    Pre-process `page_text` to change the "page_path" to the links.
+
+    >>> convert_page_path('/this/is/page/path/')
+    '`/this/is/page/path/ </this/is/page/path/>`_'
+    >>> convert_page_path('./this/is/page/path/')
+    '`./this/is/page/path/ <./this/is/page/path/>`_'
+    >>> convert_page_path('../this/is/page/path/')
+    '`../this/is/page/path/ <../this/is/page/path/>`_'
+    >>> convert_page_path('/this/is/NOT/page/path')
+    '/this/is/NOT/page/path'
+    >>> convert_page_path('this/is/NOT/page/path/')
+    'this/is/NOT/page/path/'
+    >>> convert_page_path('/a/ /b/ /c/')
+    '`/a/ </a/>`_ `/b/ </b/>`_ `/c/ </c/>`_'
+
+    """
+    # convert twice for "/b/" in "/a/ /b/ /c/"
+    new1_page_text = _RE_PAGE_PATH.sub(_REPL_PAGE_PATH, page_text)
+    new2_page_text = _RE_PAGE_PATH.sub(_REPL_PAGE_PATH, new1_page_text)
+    return new2_page_text
+
+_RE_PAGE_PATH = re.compile(
+    r'(?P<head>^|\s)'
+    r'(?P<page_path>(\.{0,2}/)+([a-zA-Z0-9][a-zA-Z0-9_\-\.\+]*/)*)'
+    r'(?P<tail>$|[\s\.!\?;,])')
+_REPL_PAGE_PATH = (
+    r'\g<head>`'
+    r'\g<page_path> <\g<page_path>>`'
+    r'_\g<tail>')
+
+
 class list_pages(nodes.Admonition, nodes.Element):
     pass
 
 
 class dictdiff(nodes.General, nodes.Element):
     pass
-
-
-class AddPageLinks(Transform):
-    """
-    Adds all unknown referencing names as the links to the other pages
-    """
-
-    default_priority = 0
-
-    def apply(self):
-        for refname in (set(self.document.refnames) -
-                        set(self.document.nameids)):
-            reference = self.document.refnames[refname][0]
-            unknown = reference['refname']
-            self.document += nodes.target(
-                ids=[nodes.make_id(unknown)],
-                names=[nodes.fully_normalize_name(unknown)],
-                refuri=unknown,
-                )
 
 
 class ProcessListPages(Transform):
@@ -167,7 +182,7 @@ class ProcessDictDiff(Transform):
 
 
 NEORG_TRANSFORMS = [
-    AddPageLinks, ProcessListPages, ProcessDictDiff,
+    ProcessListPages, ProcessDictDiff,
     ]
 
 
@@ -684,7 +699,7 @@ def gene_html(text, page_path=None):
         neorg_page_path=page_path,
         )
     return publish_parts(
-        text,
+        convert_page_path(text),
         writer=Writer(),
         reader=Reader(),
         settings_overrides=settings_overrides)['html_body']

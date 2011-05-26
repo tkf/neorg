@@ -3,7 +3,7 @@ from glob import glob
 from docutils import nodes, utils
 from mock import Mock
 
-from neorg.wiki import setup_wiki, gene_html
+from neorg.wiki import setup_wiki, gene_html, convert_page_path
 from neorg.tests.utils import MockWeb, MockDictTable, CheckData, trim
 
 
@@ -41,42 +41,141 @@ class TestListPages(CheckData):
             assert html_str in page_html
 
 
-class TestAddPageLinks(CheckData):
+class TestConvertPagePath(CheckData):
+
     data = [
         (trim("""
-         This should become an `link_to_the_other_page`_.
-         But this should not: `title_in_this_page`_.
+              /this/is/page/path/0/
+              ./this/is/page/path/1/
+              ../this/is/page/path/2/
+              this/is/NOT/page/path/3/
+              /this/is/NOT/page/path/4
+              """),
+         ['/this/is/page/path/0/',
+          './this/is/page/path/1/',
+          '../this/is/page/path/2/',
+          ],
+         ['this/is/NOT/page/path/3/',
+          '/this/is/NOT/page/path/4',
+          ],
+         ),
+        # to make sure converting-twice method works
+        ("\n".join("/this/is/page/path/%d/" % i for i in range(12)),
+         ['/this/is/page/path/%d/' % i for i in range(12)],
+         [],
+         ),
+        # ... and with odd number, too.
+        ("\n".join("/this/is/page/path/%d/" % i for i in range(13)),
+         ['/this/is/page/path/%d/' % i for i in range(13)],
+         [],
+         ),
+        # repeating heading './' and '../'
+        (trim("""
+              ../../parent/parent/
+              ../../../parent/parent/parent/
+              ././me/me/
+              ./././me/me/she/
+              ../brother/../sister/../../uncle/../../../grandpa/
+              """),
+         ['../../parent/parent/',
+          '../../../parent/parent/parent/',
+          '././me/me/',
+          './././me/me/she/',
+          ],
+         ['../brother/../sister/../../uncle/../../../grandpa/',
+          # ... is not supported
+          ],
+         ),
+        # comma, period, semicolon, exclamation mark and question mark
+        (trim("""
+              By the way, the link ./like-this/, can be
+              followed by the comma, period and semicolon,
+              which is very ../nice/; link can be at the
+              end of the /sentence/.
+              Be careful! ./this/.will/be/a/weird/link.
+              /nice/? /very/nice/!
+              """),
+         ['./like-this/',
+          '../nice/',
+          '/sentence/',
+          './this/',
+          '/nice/',
+          '/very/nice/',
+          ],
+         [],
+         ),
+        # known problems
+        (trim("""
+              `This /should/not/be/a/link/ <but/it/will/be>`_
+              *This /is/also/not/ good*.
+              `You can \./escape/ <like/this>`_
+              and `like \/this/ </which/should/be/enough>`_.
 
-         title_in_this_page
-         ==================
-         """),
-         ['link_to_the_other_page'],
-         ['title_in_this_page'],
+              ::
+
+                  but this is /very/big/problem/!!!
+
+              """),
+         ['/should/not/be/a/link/',
+          '/is/also/not/',
+          '/very/big/problem/',
+          ],
+         ['./escape/',
+          '/this/'],
          ),
         ]
+    data_allowed = [
+        '/good/path/',
+        '/this_is_not_bad/',
+        '/this.is.not.bad/',
+        ]
+    data_not_allowed = [
+        '/_this_is_bad/',
+        '/-this_is_bad/',
+        '/.this_is_bad/',
+        '.../thisisbad/',
+        ]
 
-    def check(self, page_text, links, not_links):
-        page_path = 'it does not depend on the page_path'
-        web = object()  # web shuold not be used
-        DictTable = object()  # DictTable should not be used
-        setup_wiki(web=web, DictTable=DictTable)
-        page_html = gene_html(page_text, page_path)
+    def check(self, page_text, link_list, not_link_list):
+        converted = convert_page_path(page_text)
 
-        def html_link(link):
-            return 'href="%(link)s">%(link)s</a>' % {'link': link}
+        def rstlink(l):
+            return '`%(link)s <%(link)s>`_' % {'link': l}
 
-        def html_not_link(link):
-            return 'href="#%(id)s">%(link)s</a>' % {
-                'link': link,
-                'id': nodes.make_id(link),
-                }
+        for link in link_list:
+            assert rstlink(link) in converted, \
+                   "%s is not converted" % link
 
-        for l in links:
-            assert html_link(l) in page_html
-            assert html_not_link(l) not in page_html
-        for l in not_links:
-            assert html_link(l) not in page_html
-            assert html_not_link(l) in page_html
+        for not_link in not_link_list:
+            assert rstlink(not_link) not in converted, \
+                   "%s is converted" % link
+
+    def __init__(self):
+        self.data = self.data + [
+            self.allowed(l) for l in self.data_allowed
+            ] + [
+            self.not_allowed(l) for l in self.data_not_allowed
+            ]
+
+    @classmethod
+    def allowed(cls, link):
+        page_text = cls.with_dummy_text(link)
+        return (page_text, [link], [])
+
+    @classmethod
+    def not_allowed(cls, link):
+        page_text = cls.with_dummy_text(link)
+        return (page_text, [], [link])
+
+    @staticmethod
+    def with_dummy_text(link):
+        page_text = trim(
+            """
+            some dummy string
+            %s
+            other dummy string
+            """ % link)
+        return page_text
 
 
 class TestDictDiff(CheckData):
