@@ -709,16 +709,17 @@ def setup_wiki(web=None, DictTable=None, glob_list=None):
         directives.register_directive(cls._dirc_name, cls)
 
 
-def gene_html(text, page_path=None):
+def gene_html(text, page_path=None, settings_overrides={}):
     from docutils.core import publish_parts
-    settings_overrides = SAFE_DOCUTILS.copy()
-    settings_overrides.update(
+    new_settings_overrides = SAFE_DOCUTILS.copy()
+    new_settings_overrides.update(
         # these data can be accessed from `self.document.settings`
         # of the Transform classes
         neorg_page_path=page_path,
+        **settings_overrides
         )
     return publish_parts(
         text,
         writer=Writer(),
         reader=Reader(),
-        settings_overrides=settings_overrides)['html_body']
+        settings_overrides=new_settings_overrides)['html_body']

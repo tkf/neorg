@@ -133,4 +133,8 @@ class TestConvTexts(CheckData):
         glob(os.path.join(textdir, '*.txt'))]
 
     def check(self, path):
-        gene_html(file(os.path.join(self.textdir, path)).read())
+        gene_html(file(os.path.join(self.textdir, path)).read(),
+                  settings_overrides={
+                      # ignore docutils system errors
+                      'report_level': 4,
+                      })
