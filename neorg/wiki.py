@@ -221,7 +221,8 @@ class Writer(html4css1.Writer):
 class HTMLTranslator(html4css1.HTMLTranslator):
 
     def visit_table(self, node):
-        classes = ' '.join(['docutils', self.settings.table_style]).strip()
+        classes = ' '.join(['docutils', self.settings.table_style]
+                           + ['neorg-table']).strip()
         self.body.append(
             # in html4css1.HTMLTranslator, ``border="1"`` is hard-corded!
             self.starttag(node, 'table', CLASS=classes))
@@ -257,12 +258,16 @@ def gene_entry(node_or_any):
     return entry
 
 
-def gene_table(list2d, title=None, colwidths=None):
+def gene_table(list2d, title=None, colwidths=None, classes=[],
+               _baseclass='neorg-gene-table'):
     """
     Generate table node from 2D list
     """
+    allclasses = [_baseclass] + classes
     if not list2d:
-        return nodes.table()
+        table = nodes.table()
+        table['classes'] += allclasses
+        return table
     nrow = len(list2d)
     ncol = len(list2d[0])
     if colwidths is None:
@@ -284,6 +289,7 @@ def gene_table(list2d, title=None, colwidths=None):
     for (row, list1d) in zip(rows, list2d):
         row += [gene_entry(elem) for elem in list1d]
 
+    table['classes'] += allclasses
     return table
 
 

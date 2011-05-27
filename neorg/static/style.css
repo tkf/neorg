@@ -78,18 +78,6 @@ h1, h2 {
     height: 100%;
 }
 
-.contents table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.contents table,
-.contents th,
-.contents td  {
-    border: 1px solid #8CBF8C;
-}
-
-
 .flash {
     background: #CEE5F5;
     border: 1px solid #AACBE2;
@@ -123,4 +111,18 @@ h1, h2 {
 .neorg-find-images-image {
     max-width: 100%;
     border: 1px solid #8CBF8C;
+}
+
+table.neorg-table {
+    border-collapse: collapse;
+}
+
+table.neorg-table,
+table.neorg-table th,
+table.neorg-table td  {
+    border: 1px solid #8CBF8C;
+}
+
+table.neorg-gene-table {  /* generated table  */
+    width: 100%;
 }
