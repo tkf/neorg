@@ -534,16 +534,23 @@ class GridDict(object):
     >>> gd.append((0, 0), '0.0')
     >>> gd.append((1, 1), '1.1')
     >>> gd.append((0, 2), '0.2')
+    >>> gd.append((0, 2), 'another 0.2')
     >>> gd[0][0]
     ['0.0']
     >>> gd[0, 0]
     ['0.0']
-    >>> gd[0, 1]
+    >>> gd[0, 2]
+    ['0.2', 'another 0.2']
+    >>> gd[0, 1]  # if you are on the grid, you always get a list
     []
+    >>> gd[0, 3]  # if you are outside the grid, you get:
+    Traceback (most recent call last):
+        ...
+    KeyError: "'(0, 3)' is not the grid_key"
     >>> gd.sorted_axes()
     [[0, 1], [0, 1, 2]]
     >>> gd0 = gd[0]
-    >>> gd0.sorted_axes()
+    >>> gd0.sorted_axes()  # child GridDict shares data and axes
     [[0, 1, 2]]
 
     """
@@ -556,8 +563,7 @@ class GridDict(object):
     def __getitem__(self, key):
         if isinstance(key, tuple):
             if not self.has_grid_key(key):
-                raise KeyError("'%r' is not grid_key of '%r'"
-                               % (key, self))
+                raise KeyError("'%r' is not the grid_key" % (key,))
             return self.get(key)
         else:
             return self._data[key]
