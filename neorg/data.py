@@ -442,7 +442,7 @@ class DictTable(object):
         gd = GridDict(len(key_list))
         for name in self.names:
             value = tuple(
-                self._table[self.parse_key(key)].get(name)
+                self._table.get(self.parse_key(key), {}).get(name)
                 for key in key_list)
             gd.append(value, name)
         return gd

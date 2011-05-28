@@ -178,3 +178,49 @@ class TestGridDictAppendRaiseError(TestGridDictGetItem):
         for axis in gd.axes:
             num_grid *= len(axis)
         eq_(num_test, num_grid * (gd.num + 1))
+
+
+class TestDictTableGeneDictCheckNum(CheckData):
+
+    dict_a = gene_dict('a', 'b', 'c.d', 'c.e')
+    dict_b_replaces = {'val_b': 'replaced_b',
+                       'val_c_e': 'replaced_c_e'}
+    dict_b = gene_dict('a', 'b', 'c.d', 'c.e', **dict_b_replaces)
+
+    data = [
+        ({'name_a': dict_a, 'name_b': dict_b},
+         ['b', ('c', 'e')],
+         4,
+         2,
+         ),
+        ({'name_a': dict_a, 'name_b': dict_b},
+         ['b', ('c', 'e'), 'unknown'],
+         4,
+         2,
+         ),
+        ({'name_a': dict_a, 'name_a_dash': dict_a, 'name_b': dict_b},
+         ['b', ('c', 'e')],
+         4,  # volume does not change. no change in the parameter space.
+         3,  # stored names increase for the point (val_b, val_c_e)
+         ),
+        ]
+
+    @staticmethod
+    def volume(axes):
+        num = 1
+        for a in axes:
+            num *= len(a)
+        return num
+
+    @staticmethod
+    def stored(gd):
+        num = 0
+        for key in product(*gd.axes):
+            num += len(gd[key])
+        return num
+
+    def check(self, dict_data, key_list, volume, stored):
+        dt = DictTable(dict_data)
+        gd = dt.grid_dict(key_list)
+        assert self.volume(gd.axes) == volume
+        assert self.stored(gd) == stored
