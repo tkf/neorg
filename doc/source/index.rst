@@ -200,6 +200,33 @@ See the difference of data - :rst:dir:`dictdiff`
           :link: %(path)s
 
 
+Show effects of the parameter change - :rst:dir:`grid-images`
+-------------------------------------------------------------
+
+.. rst:directive:: .. grid-images:: path [path ...]
+
+   Search data and show the images related to the data on "grid".
+   The grid represents the *direct product* of the parameter set.
+   This directive is useful to see the results of comprehensive
+   experiments.  For example, to see the results from the experiment
+   with the parameter *alpha* and *beta* which are chosen from
+   *[0, 1]* and *[0.1, 0.5]*, use ``:param: alpha, beta``.
+   The results will be shown in a 2x2 table.
+
+   base : string (newlines removed)
+       The base path for searching data. Real path to be used
+       will be `{BASE}/{ARG}` where `{ARG}` is each value in
+       the arguments and `{BASE}` is the value of this option.
+
+   param : text [, text]
+       A comma- or space-separated list of axis for making grid.
+
+   image : text [, text]
+       A comma- or space-separated list of path to the images.
+       The path is the relative path from the parent directory of
+       the data file.
+
+
 Find images - :rst:dir:`find-images`
 ------------------------------------
 

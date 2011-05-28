@@ -237,9 +237,10 @@ def with_children(cls, children, *cls_args, **cls_kwds):
     return node_instance
 
 
-def gene_paragraph(rawtext):
+def gene_paragraph(rawtext, classes=[]):
     paragraph = nodes.paragraph()
     paragraph += nodes.Text(rawtext)
+    paragraph['classes'] += classes
     return paragraph
 
 
@@ -686,6 +687,106 @@ class FindImages(Directive):
         return node_list
 
 
+def gene_table_from_grid_dict(grid_dict, param, conv, title=None, **kwds):
+    list2d = []
+    len_axes = len(grid_dict.axes)
+    if len_axes > 1:
+        axes0 = sorted(grid_dict.axes[0])
+        axes1 = sorted(grid_dict.axes[1])
+        list2d.append(
+            [''] +
+            [gene_paragraph('%s=%s' % (param[1], y),
+                            classes=['neorg-grid-col'])
+             for y in axes1])
+        for x in axes0:
+            list1d = [gene_paragraph('%s=%s' % (param[0], x),
+                                     classes=['neorg-grid-row'])]
+            for y in axes1:
+                dct = grid_dict[x, y]
+                if len_axes == 2:
+                    elem = conv(dct)
+                else:
+                    elem = gene_table_from_grid_dict(
+                        dct, param[2:], conv, **kwds)
+                list1d.append(elem)
+            list2d.append(list1d)
+    else:
+        axes0 = sorted(grid_dict.axes[0])
+        list2d = [
+            [gene_paragraph('%s=%s' % (param[0], x),
+                            classes=['neorg-grid-row']),
+             conv(grid_dict[x]),
+             ] for x in axes0]
+    if len(list2d) > 0 and len(list2d[0]) > 0:
+        data_num = (len(list2d[0]) - 1)
+        colwidths = [1] + [int(99.0 / data_num)] * data_num
+    else:
+        colwidths = None
+    return gene_table(list2d, title=title, colwidths=colwidths, **kwds)
+
+
+class GridImages(Directive):
+    _dirc_name = 'grid-images'
+    _web = None  # needs override
+    _DictTable = None  # needs override
+
+    required_arguments = 1
+    optional_arguments = OPTIONAL_ARGUMENTS_INF
+    final_argument_whitespace = True
+    option_spec = {'param': parse_text_list,
+                   'image': parse_text_list,
+                   'base': directives.path}
+    has_content = False
+
+    def run(self):
+        # naming note:
+        #     - *_syspath is system path
+        #     - *_relpath is relative path from `datadir`
+        #     - *_absurl is url with leading slash
+        if 'param' not in self.options:
+            return []
+        param = self.options['param']
+        if 'image' not in self.options:
+            return []
+        image_names = self.options['image']
+        datadir = self._web.app.config['DATADIRPATH']
+        datadirurl = self._web.app.config['DATADIRURL']
+
+        base_syspath = path.join(datadir,
+                                 self.options.get('base', ''))
+        data_syspath_list = glob_list([path.join(base_syspath,
+                                                 directives.uri(arg))
+                                       for arg in self.arguments])
+        data_table = self._DictTable.from_path_list(data_syspath_list)
+        grid_dict = data_table.grid_dict(param)
+
+        def images_from_data_syspath(data_syspath):
+            data_relpath = path.relpath(data_syspath, datadir)
+            parent_relpath = path.dirname(data_relpath)
+            parent_absurl = path.join(datadirurl, parent_relpath)
+
+            return [
+                nodes.image(uri=path.join(parent_absurl, name),
+                            classes=['neorg-grid-images-image'])
+                for (i, name) in enumerate(image_names)]
+
+        def conv(name_list):
+            lst = []
+            for name in name_list:
+                lst += images_from_data_syspath(name)
+            return lst
+
+        title = title_from_path(self.arguments,
+                                self.options.get('base'),
+                                'Comparing images of data found in: %s')
+
+        return [gene_table_from_grid_dict(grid_dict,
+                                          param,
+                                          conv,
+                                          title,
+                                          classes=['neorg-grid-images'],
+                                          )]
+
 class ListPages(Directive):
     _dirc_name = 'list-pages'
 
@@ -695,6 +796,7 @@ class ListPages(Directive):
 
 NEORG_DIRECTIVES = [
     TableData, TableDataAndImage, FindImages, ListPages, DictDiff,
+    GridImages,
     ]
 
 

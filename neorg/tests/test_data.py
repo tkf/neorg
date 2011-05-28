@@ -1,6 +1,7 @@
-from neorg.data import DictTable
+from neorg.data import DictTable, GridDict
 
-from nose.tools import raises
+from itertools import product
+from nose.tools import raises, assert_raises, eq_
 from neorg.tests.utils import CheckData
 
 
@@ -111,3 +112,69 @@ class TestDictTableFilterByFnmatch(CheckData):
         dt_desired = DictTable(dict_data_desired)
         dt_filtered = dt.filter_by_fnmatch(*args, **kwds)
         assert_eq(dt_desired=dt_desired, dt_filtered=dt_filtered)
+
+
+
+class CheckGridDict(CheckData):
+
+    @staticmethod
+    def gene_grid_dict(key_val):
+        gd = GridDict(len(key_val[0][0]))
+        for (key, val) in key_val:
+            gd.append(key, val)
+        return gd
+
+
+class TestGridDictGetItem(CheckGridDict):
+
+    data = [
+        ([((0, 0), '00'),
+          ((0, 1), '01'),
+          ((0, 1), '01 (2)'),
+          ((0, 1), '01 (3)'),
+          ((0, 2), '02'),
+          ((1, 1), '11')],
+         ),
+        ([((0, 0, 0), '000'),
+          ((1, 1, 1), '111'),
+          ((2, 2, 2), '222')],
+         ),
+        ([((i, j * 0.1), None)
+          for i in range(3) for j in range(4)
+          if i != j],
+         ),
+        ([((i, j * 0.1, str(k)), None)
+          for i in range(3) for j in range(4) for k in range(5)
+          if not (i == j == k and i == j + 1 == k + 2)],
+         ),
+        ]
+
+    def check(self, key_val):
+        gd = self.gene_grid_dict(key_val)
+        for key in product(*gd.axes):
+            vals = [v for (k, v) in key_val if k == key]
+            assert gd[key] == vals
+            expr  = 'gd[key] == gd[%s]' % ']['.join(map(repr, key))
+            assert eval(expr, {'gd': gd, 'key': key})
+
+
+class TestGridDictAppendRaiseError(TestGridDictGetItem):
+
+    def check(self, key_val):
+        gd = self.gene_grid_dict(key_val)
+        num_test = 0
+        for num in range(gd.num - 1):
+            for key in product(*gd.axes):
+                assert_raises(KeyError, gd.append, key[:num], None)
+                num_test += 1
+        for key in product(*gd.axes):
+            gd.append(key, None)
+            num_test += 1
+        for key in product(*gd.axes):
+            bigkey = key + (key[0],)
+            assert_raises(KeyError, gd.append, bigkey, None)
+            num_test += 1
+        num_grid = 1
+        for axis in gd.axes:
+            num_grid *= len(axis)
+        eq_(num_test, num_grid * (gd.num + 1))

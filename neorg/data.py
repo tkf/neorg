@@ -438,6 +438,15 @@ class DictTable(object):
 
     load_any = staticmethod(load_any)
 
+    def grid_dict(self, key_list):
+        gd = GridDict(len(key_list))
+        for name in self.names:
+            value = tuple(
+                self._table[self.parse_key(key)].get(name)
+                for key in key_list)
+            gd.append(value, name)
+        return gd
+
 
 def get_nested(dct, dictpath, sep='.'):
     """
@@ -515,3 +524,86 @@ def get_nested_fnmatch(dct, dictpath, sep='.'):
     for (keylist, val) in sorted(_nested_fnmatch(dct,
                                                  dictpath.split(sep))):
         yield (sep.join(map(str, keylist)), val)
+
+
+class GridDict(object):
+    """
+    Dict-like object which has key on "grid"
+
+    >>> gd = GridDict(2)  # create 2dim grid
+    >>> gd.append((0, 0), '0.0')
+    >>> gd.append((1, 1), '1.1')
+    >>> gd.append((0, 2), '0.2')
+    >>> gd[0][0]
+    ['0.0']
+    >>> gd[0, 0]
+    ['0.0']
+    >>> gd[0, 1]
+    []
+    >>> gd.sorted_axes()
+    [[0, 1], [0, 1, 2]]
+    >>> gd0 = gd[0]
+    >>> gd0.sorted_axes()
+    [[0, 1, 2]]
+
+    """
+
+    def __init__(self, num):
+        self.num = num
+        self.axes = [set() for dummy in range(num)]
+        self._data = {}
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple):
+            if not self.has_grid_key(key):
+                raise KeyError("'%r' is not grid_key of '%r'"
+                               % (key, self))
+            return self.get(key)
+        else:
+            return self._data[key]
+
+    def append(self, key, val):
+        if not (isinstance(key, tuple) and len(key) == self.num):
+            raise KeyError('key must be a tuple with length=%d'
+                           % self.num)
+        self.get(key).append(val)
+
+    def get(self, key):
+        val = self
+        for (i, k) in enumerate(key):
+            val = val._data_get(k)
+            self.axes[i].add(k)
+        return val
+
+    def _data_get(self, k):
+        if k in self._data:
+            return self._data[k]
+        else:
+            return self._data.setdefault(k, self.new_child())
+
+    def new_child(self):
+        newnum = self.num - 1
+        child = self.new(newnum)
+        if newnum > 0:
+            child.axes = self.axes[1:]
+        return child
+
+    @classmethod
+    def new(cls, num):
+        if num > 0:
+            return cls(num)
+        else:
+            return []
+
+    def has_grid_key(self, key):
+        try:
+            return all(k in self.axes[i] for (i, k) in enumerate(key))
+        except TypeError:
+            return False
+
+    def sorted_axes(self, reverse={}):
+        if reverse == 'all':
+            return [sorted(a, reverse=True) for a in self.axes]
+        else:
+            return [sorted(a, reverse=reverse.get(i, False))
+                    for (i, a) in enumerate(self.axes)]
