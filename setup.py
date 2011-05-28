@@ -124,4 +124,8 @@ setup(
             },
         },
     cmdclass=cmdclass,
+    install_requires=[
+        'Flask',
+        'argparse',
+    ],
     )
