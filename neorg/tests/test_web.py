@@ -92,6 +92,14 @@ else:
 class TestNEOrgWeb(TestNEOrgWebBase):
     num_test = 3  # Number of test for generated page
 
+    def test_system_info(self):
+       from neorg import __version__
+       from neorg.web import system_info
+       sysinfo = system_info()
+       assert sysinfo['version'] == __version__
+       assert sysinfo['updated'].startswith('20')
+       assert sysinfo['updated'][:4].isdigit()
+
     @staticmethod
     def gene_page_paths(num, prefix="test"):
         yield ""

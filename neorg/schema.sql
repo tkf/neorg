@@ -12,3 +12,9 @@ create table page_history (
   page_exists integer not null default 1,
   updated timestamp default current_timestamp
 );
+
+drop table if exists system_info;
+create table system_info (
+  version string primary key,
+  updated timestamp default current_timestamp
+);

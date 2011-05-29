@@ -141,10 +141,34 @@ def connect_db():
 
 def init_db():
     """Creates the database tables."""
+    from neorg import __version__
     with closing(connect_db()) as db:
         with app.open_resource('schema.sql') as f:
             db.cursor().executescript(f.read())
+        db.execute(
+            'insert into system_info (version) values (?)',
+            [__version__])
         db.commit()
+
+
+def system_info():
+    """
+    Get current system info stored in `system_info` table
+
+    .. warning::
+
+       Do NOT use this in app.
+       New function using `g.db` should be implemented to use
+       system_info table in app.
+
+    """
+    with closing(connect_db()) as db:
+        sysinfo_current = db.execute(
+            'select * from system_info').fetchone()
+    if sysinfo_current:
+        return dict(zip(
+            ['version', 'updated'],
+            sysinfo_current))
 
 
 @app.before_request
