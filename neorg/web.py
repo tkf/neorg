@@ -315,7 +315,7 @@ def gene_from_template(page_path):
 
 
 def list_descendants(page_path):
-    return map('./{0}'.format, sorted(find_descendants(page_path)))
+    return map(u'./{0}'.format, sorted(find_descendants(page_path)))
 
 
 @app.route('/_descendants', defaults={'page_path': ''})
