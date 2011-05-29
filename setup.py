@@ -13,7 +13,7 @@ except ImportError:
 import neorg
 
 
-data_list = ['schema.sql', 'templates/*.html', 'tests/texts/*.txt'] + [
+data_list = ['schema.sql', 'templates/*.html'] + [
     os.path.join('%s' % d, '*.%s' % e)
     for e in ['css', 'html', 'ico', 'inv', 'js', 'png', 'txt']
     for d in ['static', 'static/help',
@@ -97,9 +97,11 @@ if BUILD_SPHINX_AVAILABLE:
 setup(
     name='neorg',
     version=neorg.__version__,
-    packages=['neorg'],
+    packages=['neorg', 'neorg.tests'],
     package_data={
-        'neorg': data_list},
+        'neorg': data_list,
+        'neorg.tests': ['texts/*.txt'],
+        },
     description='NEOrg - Numerical Simulation Organizer',
     long_description=neorg.__doc__,
     author=neorg.__author__,
