@@ -1,42 +1,8 @@
 .. contents::
 
-
-Docuitils links
-===============
-
-- `Docutils Project Documentation Overview`_
-
-  - `reStructuredText`_
-
-    - `A ReStructuredText Primer`_
-    - `Quick reStructuredText`_
-    - `reStructuredText Cheat Sheet (text only)`_
-    - `reStructuredText Demonstration`_
-    - `reStructuredText Markup Specification`_
-    - `reStructuredText Directives`_
-    - `reStructuredText Interpreted Text Roles`_
-
-
-.. _`Docutils Project Documentation Overview`:
-   http://docutils.sourceforge.net/docs/
-
-.. _`reStructuredText`:
-   http://docutils.sourceforge.net/rst.html
-
-.. _`A ReStructuredText Primer`:
-   http://docutils.sourceforge.net/docs/user/rst/quickstart.html
-.. _`Quick reStructuredText`:
-   http://docutils.sourceforge.net/docs/user/rst/quickref.html
-.. _`reStructuredText Cheat Sheet (text only)`:
-   http://docutils.sourceforge.net/docs/user/rst/cheatsheet.txt
-.. _`reStructuredText Demonstration`:
-   http://docutils.sourceforge.net/docs/user/rst/demo.html
-.. _`reStructuredText Markup Specification`:
-   http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
-.. _`reStructuredText Interpreted Text Roles`:
-   http://docutils.sourceforge.net/docs/ref/rst/roles.html
-.. _`reStructuredText Directives`:
-   http://docutils.sourceforge.net/docs/ref/rst/directives.html
+=========================
+  NEOrg Reference Guide
+=========================
 
 
 Special directives
@@ -283,3 +249,41 @@ Example.:
 ``{{ relpath }}``
     This will be replaced by the relative path from the parent page of
     the leftmost ``_temp_`` page.
+
+
+Docuitils links
+===============
+
+- `Docutils Project Documentation Overview`_
+
+  - `reStructuredText`_
+
+    - `A ReStructuredText Primer`_
+    - `Quick reStructuredText`_
+    - `reStructuredText Cheat Sheet (text only)`_
+    - `reStructuredText Demonstration`_
+    - `reStructuredText Markup Specification`_
+    - `reStructuredText Directives`_
+    - `reStructuredText Interpreted Text Roles`_
+
+
+.. _`Docutils Project Documentation Overview`:
+   http://docutils.sourceforge.net/docs/
+
+.. _`reStructuredText`:
+   http://docutils.sourceforge.net/rst.html
+
+.. _`A ReStructuredText Primer`:
+   http://docutils.sourceforge.net/docs/user/rst/quickstart.html
+.. _`Quick reStructuredText`:
+   http://docutils.sourceforge.net/docs/user/rst/quickref.html
+.. _`reStructuredText Cheat Sheet (text only)`:
+   http://docutils.sourceforge.net/docs/user/rst/cheatsheet.txt
+.. _`reStructuredText Demonstration`:
+   http://docutils.sourceforge.net/docs/user/rst/demo.html
+.. _`reStructuredText Markup Specification`:
+   http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
+.. _`reStructuredText Interpreted Text Roles`:
+   http://docutils.sourceforge.net/docs/ref/rst/roles.html
+.. _`reStructuredText Directives`:
+   http://docutils.sourceforge.net/docs/ref/rst/directives.html
