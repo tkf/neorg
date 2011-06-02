@@ -1,7 +1,9 @@
 import os
 from glob import glob
+from itertools import product
 from docutils import nodes, utils
 from mock import Mock
+from nose.tools import eq_
 
 from neorg.wiki import setup_wiki, gene_html
 from neorg.tests.utils import MockWeb, MockDictTable, CheckData, trim
@@ -122,6 +124,64 @@ class TestDictDiff(CheckData):
 
         for key in dictdiff:
             assert key in page_html
+
+
+
+class TestGridImages(CheckData):
+
+    data_file_tree_1 = dict(
+        ('a_%d_b_%d_c_%d/file.pickle' % (a, b, c), dict(a=a, b=b, c=c))
+        for (a, b, c) in product([0, 1, 2], [3, 4, 5], [6, 7, 8]))
+
+    data_file_tree_2 = dict(
+        (key, val) for (key, val) in data_file_tree_1.iteritems()
+        if key not in ['a_%d_b_%d_c_%d/file.pickle' % abc
+                       for abc in [(0, 3, 6), (0, 3, 7)]])
+
+    data_page_text_1 = trim(
+        """
+        .. grid-images:: */file.pickle
+           :param: a b c
+           :image: dummy-image.png
+        """)
+
+    data = [
+        (data_page_text_1,
+         data_file_tree_1,
+         {'<td>': ((3 ** 3) * 2  # number of images + c=%d besides it
+                   + 3 * 3  # number of sub-tables (num_a x num_b)
+                   + 3 * 2  # number of a=%d and b=%d
+                   + 1  # top-left empty cell
+                   ),
+          },
+         ),
+        (data_page_text_1,
+         data_file_tree_2,
+         {'<td>': ((3 ** 3) * 2  # number of images + c=%d besides it
+                   + 3 * 3  # number of sub-tables (num_a x num_b)
+                   + 3 * 2  # number of a=%d and b=%d
+                   + 1  # top-left empty cell
+                   ),
+          },
+         ),
+        (data_page_text_1,
+         {},  # no match
+         {'<td>': 1},
+         ),
+        ]
+
+    def check(self, page_text, file_tree, stats):
+        page_path = 'it does not depend on the page_path'
+        web = MockWeb()
+        DictTable = MockDictTable.new_mock(file_tree)
+        glob_list = Mock(return_value=sorted(file_tree))
+        setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+        page_html = gene_html(page_text, page_path)
+
+        for (key, val) in stats.iteritems():
+            eq_(page_html.count(key), val,
+                "page_html must contains %d of '%s'" % (val, key))
+
 
 
 class TestConvTexts(CheckData):

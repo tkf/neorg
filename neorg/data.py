@@ -556,6 +556,8 @@ class GridDict(object):
     """
 
     def __init__(self, num):
+        if not num > 0:
+            raise ValueError('num (=%d) must be larger than 0' % num)
         self.num = num
         self.axes = [set() for dummy in range(num)]
         self._data = {}
@@ -566,7 +568,9 @@ class GridDict(object):
                 raise KeyError("'%r' is not the grid_key" % (key,))
             return self.get(key)
         else:
-            return self._data[key]
+            if key not in self.axes[0]:
+                raise KeyError("'%r' is not the first key" % (key,))
+            return self._data_get(key)
 
     def append(self, key, val):
         if not (isinstance(key, tuple) and len(key) == self.num):

@@ -717,7 +717,7 @@ def gene_table_from_grid_dict(grid_dict, param, conv, title=None, **kwds):
                             classes=['neorg-grid-row']),
              conv(grid_dict[x]),
              ] for x in axes0]
-    if len(list2d) > 0 and len(list2d[0]) > 0:
+    if len(list2d) > 0 and len(list2d[0]) > 1:
         data_num = (len(list2d[0]) - 1)
         colwidths = [1] + [int(99.0 / data_num)] * data_num
     else:
@@ -729,6 +729,7 @@ class GridImages(Directive):
     _dirc_name = 'grid-images'
     _web = None  # needs override
     _DictTable = None  # needs override
+    _glob_list = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -754,9 +755,9 @@ class GridImages(Directive):
 
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
-        data_syspath_list = glob_list([path.join(base_syspath,
-                                                 directives.uri(arg))
-                                       for arg in self.arguments])
+        data_syspath_list = self._glob_list(
+            [path.join(base_syspath, directives.uri(arg))
+             for arg in self.arguments])
         data_table = self._DictTable.from_path_list(data_syspath_list)
         grid_dict = data_table.grid_dict(param)
 
@@ -807,13 +808,15 @@ def setup_wiki(web=None, DictTable=None, glob_list=None):
         from neorg.data import DictTable
     if glob_list is None:
         from neorg.wiki import glob_list
+    glob_list = staticmethod(glob_list)
     for cls in NEORG_TRANSFORMS:
         cls._web = web
         cls._DictTable = DictTable
-        cls._glob_list = staticmethod(glob_list)
+        cls._glob_list = glob_list
     for cls in NEORG_DIRECTIVES:
         cls._web = web
         cls._DictTable = DictTable
+        cls._glob_list = glob_list
         directives.register_directive(cls._dirc_name, cls)
 
 
