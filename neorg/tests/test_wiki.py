@@ -99,22 +99,40 @@ class TestPagePathInlineMarkup(CheckData):
 
 
 class TestDictDiff(CheckData):
+    data_page_text_1 = trim(
+        """
+        .. dictdiff:: data*/file.pickle
+        """)
+    data_page_text_2 = trim(
+        """
+        .. dictdiff:: data*/file.pickle
+           :link: %(path)s
+        """)
+    data_page_text_3 = trim(
+        """
+        .. dictdiff:: data*/file.pickle
+           :link: %(non_magic_word)s
+        """)
+    data_file_tree = {
+        'data_1/file.pickle': {'a': 1, 'b': 0},
+        'data_2/file.pickle': {'a': 2, 'b': 0},
+        'data_3/file.pickle': {'a': 3, 'b': 0},
+        }
+    data_dictdiff = {
+        'a': {'data_1/file.pickle': 1,
+              'data_2/file.pickle': 2,
+              'data_3/file.pickle': 3,
+              },
+        }
+    data_links_2 = ['data_1', 'data_2', 'data_3']
+
     data = [
-        (trim("""
-         .. dictdiff:: file_*.pickle
-         """),
-         {'data/file_1.pickle': {'a': 1, 'b': 0},
-          'data/file_2.pickle': {'a': 2, 'b': 0},
-          'data/file_3.pickle': {'a': 3, 'b': 0},
-          },
-         {'a': {'data/file_1.pickle': 1,
-                'data/file_2.pickle': 2,
-                'data/file_3.pickle': 3,
-                }},
-         ),
+        (data_page_text_1, data_file_tree, data_dictdiff, []),
+        (data_page_text_2, data_file_tree, data_dictdiff, data_links_2),
+        (data_page_text_3, data_file_tree, data_dictdiff, None),
         ]
 
-    def check(self, page_text, file_tree, dictdiff):
+    def check(self, page_text, file_tree, dictdiff, links):
         page_path = 'it does not depend on the page_path'
         web = MockWeb()
         DictTable = MockDictTable.new_mock(file_tree)
@@ -124,6 +142,12 @@ class TestDictDiff(CheckData):
 
         for key in dictdiff:
             assert key in page_html
+
+        if links:
+            for link in links:
+                assert '%s</a>' % link in page_html
+        elif links == []:
+            assert 'link(s)' not in page_html
 
 
 

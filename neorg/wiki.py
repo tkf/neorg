@@ -57,6 +57,32 @@ SAFE_DOCUTILS = dict(file_insertion_enabled=False, raw_enabled=False)
 OPTIONAL_ARGUMENTS_INF = 10000
 
 
+class SafeMagic(object):
+    """
+    Safe way to do ``spell % {'magic_word': value}``
+
+    >>> sm = SafeMagic({'a': 1, 'b': 2})
+    >>> sm('%(a)s plus %(b)s')
+    '1 plus 2'
+    >>> sm('%(non_magic_word)s')
+    '%(non_magic_word)s'
+    >>> sm.fails
+    [KeyError('non_magic_word',)]
+
+    """
+
+    def __init__(self, magic_words):
+        self._magic_words = magic_words
+        self.fails = []
+
+    def __call__(self, spell):
+        try:
+            return spell % self._magic_words
+        except KeyError, err:
+            self.fails.append(err)
+            return spell
+
+
 def convert_page_path_to_nodes(text, node_list=[]):
     split = _RE_PAGE_PATH.split(text, maxsplit=1)
     if len(split) == 7:
@@ -167,25 +193,30 @@ class ProcessDictDiff(Transform):
                                      exclude=node.get('exclude'))
 
         keylist = sorted(diff_data)
-        table_data = [[''] + keylist + ['link(s)']]
+        table_header = [''] + keylist
+        if link:
+            table_header.append('link(s)')
+        table_data = [table_header]
         for data_syspath in data_table.names:
             data_relpath = path.relpath(data_syspath, datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
 
-            link_magic = {
+            link_magic = SafeMagic({
                 'path': parent_relpath,
-                'relpath': path.relpath(parent_syspath,
-                                        base_syspath),
-                }
-            link_nodes = gene_links_in_paragraph(
-                [l % link_magic for l in link])
+                'relpath': path.relpath(parent_syspath, base_syspath),
+                })
             from_base = path.relpath(data_syspath, base_syspath)
-            table_data.append(
+            table_row = (
                 [from_base] +
                 [diff_data[keystr].get(data_syspath, '')
-                 for keystr in keylist] +
-                [link_nodes])
+                 for keystr in keylist]
+                )
+            if link:
+                table_row.append(gene_links_in_paragraph(
+                    map(link_magic, link)))
+                ## link_magic.fails  # need to do something w/ fails
+            table_data.append(table_row)
 
         if node.hasattr('trans'):
             table_data = zip(*table_data)
@@ -525,13 +556,14 @@ class TableData(Directive):
             data_relpath = path.relpath(data_syspath, datadir)
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
-            link_magic = {
+            link_magic = SafeMagic({
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
-                }
+                })
             if link is not None:
                 row.append(gene_links_in_paragraph(
-                    [l % link_magic for l in link]))
+                    map(link_magic, link)))
+                ## link_magic.fails  # need to do something w/ fails
         if 'trans' in self.options:
             rowdata = zip(*rowdata)
         return [gene_table(rowdata,
@@ -601,17 +633,18 @@ class TableDataAndImage(Directive):
             parent_syspath = path.dirname(data_syspath)
             parent_relpath = path.dirname(data_relpath)
             parent_absurl = path.join(datadirurl, parent_relpath)
-            link_magic = {
+            link_magic = SafeMagic({
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
-                }
+                })
             subtable = gene_table(
                 data_table.get_nested_fnmatch(data_syspath, data_keys),
                 title=path.relpath(data_syspath, base_syspath))
             col0 = [subtable]
             if link is not None:
-                col0.append(
-                    gene_link_list([l % link_magic for l in link]))
+                col0.append(gene_link_list(
+                    map(link_magic, link)))
+                ## link_magic.fails  # need to do something w/ fails
             images = [
                 nodes.image(uri=path.join(parent_absurl, name),
                             **image_options.get(i, {}))
