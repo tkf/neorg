@@ -88,8 +88,8 @@ Show data in a table - :rst:dir:`table-data`
    .. seealso:: :ref:`examples/table-data`
 
 
-Show data and images in table - :rst:dir:`table-data-and-image`
----------------------------------------------------------------
+Show data and images in a table - :rst:dir:`table-data-and-image`
+-----------------------------------------------------------------
 
 .. rst:directive:: .. table-data-and-image:: path [path ...]
 
@@ -442,6 +442,19 @@ Configuration variables
 
    If it is set to ``True``, ``neorg serve`` runs in :term:`debug mode`
    always.
+
+
+FAQs
+====
+
+How do I make a new page?
+-------------------------
+
+Just type a page path to the browser's address bar, e.g.::
+
+    http://localhost:8000/my/new/page/
+
+and then you will see the edit form, if the page does not exist.
 
 
 Docuitils links
