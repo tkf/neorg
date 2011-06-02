@@ -3,6 +3,7 @@ from neorg import NEORG_HIDDEN_DIR, CONFIG_FILE
 
 
 class DefaultConfig(object):
+    DEBUG = False
     DATABASE = '%(neorg)s/neorg.db'
     DATADIRPATH = '%(root)s'
 
@@ -49,8 +50,7 @@ def load_config(app, dirpath=None):
             app.config[key] = expandall(app.config[key] % magic)
 
 
-DEFAULT_CONFIG_FILE = """
-DEBUG = True
+DEFAULT_CONFIG_FILE = """\
 SECRET_KEY = 'development key'
 DATADIRPATH = '%(root)s'
 """
