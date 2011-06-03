@@ -24,22 +24,22 @@ TMP_PREFIX = 'neorg-tmp'
 
 
 def urljoin(a, *p):
-   """
-   Join two or more pathname components, inserting '/' as needed.
+    """
+    Join two or more pathname components, inserting '/' as needed.
 
-   If any component is an absolute path, all previous path components
-   will be discarded. (Adapted from the `posixpath` module.)
+    If any component is an absolute path, all previous path components
+    will be discarded. (Adapted from the `posixpath` module.)
 
-   """
-   path = a
-   for b in p:
-       if b.startswith('/'):
-           path = b
-       elif path == '' or path.endswith('/'):
-           path +=  b
-       else:
-           path += '/' + b
-   return path
+    """
+    path = a
+    for b in p:
+        if b.startswith('/'):
+            path = b
+        elif path == '' or path.endswith('/'):
+            path +=  b
+        else:
+            path += '/' + b
+    return path
 
 
 def setup_app():
