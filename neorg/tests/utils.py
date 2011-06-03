@@ -98,7 +98,7 @@ def trim(docstring):
     return '\n'.join(trimmed)
 
 
-class CaputureStdIO(object):
+class CaptureStdIO(object):
 
     def __enter__(self):
         import sys
@@ -115,3 +115,11 @@ class CaputureStdIO(object):
         sys.stdin = self._orig_stdin
         sys.stdout = self._orig_stdout
         sys.stderr = self._orig_stderr
+
+    def read_stdout(self):
+        self.stdout.seek(0)
+        return self.stdout.read()
+
+    def read_stderr(self):
+        self.stderr.seek(0)
+        return self.stderr.read()

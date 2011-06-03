@@ -18,7 +18,7 @@ from nose.tools import raises, assert_raises
 
 from neorg import web
 from neorg.config import DefaultConfig
-from neorg.tests.utils import trim, CaputureStdIO
+from neorg.tests.utils import trim, CaptureStdIO
 
 TMP_PREFIX = 'neorg-tmp'
 
@@ -324,19 +324,17 @@ class TestNEOrgWeb(TestNEOrgWebBase):
 
         # error must NOT be suppressed when _debug=True
         from docutils.utils import SystemMessage
-        with CaputureStdIO() as stdio:  # suppress stderr
+        with CaptureStdIO() as stdio:  # suppress stderr
             assert_raises(SystemMessage, gene_page_with_error,
                           debug=True)
-            stdio.stderr.seek(0)
-            stderr = stdio.stderr.read()
+        stderr = stdio.read_stderr()
         assert ('(ERROR/3) Unknown target name: "nonexistent_target".'
                 in stderr)
 
         # error must be suppressed when _debug=False
-        with CaputureStdIO() as stdio:  # suppress stderr
+        with CaptureStdIO() as stdio:  # suppress stderr
             page_html = gene_page_with_error(debug=False)
-            stdio.stderr.seek(0)
-            stderr = stdio.stderr.read()
+        stderr = stdio.read_stderr()
         assert ('(ERROR/3) Unknown target name: "nonexistent_target".'
                 in stderr)
         assert '<h1>Failed to generate HTML</h1>' in page_html

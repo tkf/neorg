@@ -499,6 +499,31 @@ def choice_from(*choices):
     return conv_func
 
 
+def check_rowdata_and_widths(rowdata, colwidths, warning):
+    """
+    Check if the number of column in `rowdata` and `widths` are the same
+    """
+    messages = []
+    if len(rowdata) > 0:
+        if colwidths is not None:
+            colwidthsstr = ' '.join(map(str, colwidths))
+            if len(rowdata[0]) > len(colwidths):
+                messages.append(warning(
+                    'Not enough widths arguments for table-data: '
+                    '"{0}"'.format(colwidthsstr)))
+                colwidths = None  # ignore the option
+            elif len(rowdata[0]) < len(colwidths):
+                messages.append(warning(
+                    'Too many widths arguments for table-data: '
+                    '"{0}"'.format(colwidthsstr)))
+                colwidths = None  # ignore the option
+        if len(rowdata[0]) < 1:
+            messages.append(warning('Not enough data'))
+    else:
+        messages.append(warning('Not enough data'))
+    return (messages, colwidths)
+
+
 class TableData(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -568,12 +593,18 @@ class TableData(Directive):
                 ## link_magic.fails  # need to do something w/ fails
         if 'trans' in self.options:
             rowdata = zip(*rowdata)
+
+        (messages, colwidths) = check_rowdata_and_widths(
+            rowdata,
+            colwidths,
+            self.state.reporter.warning,
+            )
         return [gene_table(rowdata,
                            title=title_from_path(
                                self.arguments,
                                self.options.get('base'),
                                'Data found in: %s'),
-                           colwidths=colwidths)]
+                           colwidths=colwidths)] + messages
 
 
 class TableDataAndImage(Directive):
@@ -654,12 +685,18 @@ class TableDataAndImage(Directive):
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
             rowdata.append([col0] + images)
+
+        (messages, colwidths) = check_rowdata_and_widths(
+            rowdata,
+            colwidths,
+            self.state.reporter.warning,
+            )
         return [gene_table(rowdata,
                            title=title_from_path(
                                self.arguments,
                                self.options.get('base'),
                                'Data found in: %s'),
-                           colwidths=colwidths)]
+                           colwidths=colwidths)] + messages
 
 
 class DictDiff(Directive):

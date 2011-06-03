@@ -2,11 +2,13 @@ import os
 from glob import glob
 from itertools import product
 from docutils import nodes, utils
+from cgi import escape
 from mock import Mock
 from nose.tools import eq_, assert_raises
 
 from neorg.wiki import setup_wiki, gene_html
-from neorg.tests.utils import MockWeb, MockDictTable, CheckData, trim
+from neorg.tests.utils import (MockWeb, MockDictTable, CheckData, trim,
+                               CaptureStdIO)
 
 
 def doctree_from_dict(data):
@@ -174,13 +176,39 @@ class TestTableData(CheckData):
           'path-order': 'sort_r'},
          data_file_tree_1,
          []),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'base': 'ex',
+          'widths': '1 2 2 2',  # four columns, because of 'link'
+          'link': '%(relpath)s',
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         ['data_1', 'data_2', 'data_3']),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'base': 'ex',
+          'widths': '1 2',  # not enough number of widths
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         [],
+         ['WARNING/2',
+          'Not enough widths arguments for table-data: "1 2"']),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'base': 'ex',
+          'widths': '1 2 3 4',  # too many number of widths
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         [],
+         ['WARNING/2',
+          'Too many widths arguments for table-data: "1 2 3 4"']),
         ]
 
     @staticmethod
     def genedir(args, **dirdata):
         return dirtext('table-data', '', *args, **dirdata)
 
-    def check(self, dirdata, file_tree, links):
+    def check(self, dirdata, file_tree, links, errors=[]):
         page_text = self.genedir(**dirdata)
 
         page_path = 'it does not depend on the page_path'
@@ -188,12 +216,22 @@ class TestTableData(CheckData):
         DictTable = MockDictTable.new_mock(file_tree)
         glob_list = Mock(return_value=sorted(file_tree))
         setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
-        page_html = gene_html(page_text, page_path, _debug=True)
+        with CaptureStdIO() as stdio:
+            page_html = gene_html(page_text, page_path, _debug=True)
+        stderr = stdio.read_stderr()
 
         for key in dirdata['data'].split():
             td_tag = '<td>{0}</td>'.format(key)
             assert td_tag in page_html
 
+        for link in links:
+            assert '{0}</a>'.format(link) in page_html
+
+        for error in errors:
+            assert escape(error, True) in page_html
+            assert error in stderr
+        if not errors:
+            assert not stderr
 
 
 class TestTableDataAndImage(CheckData):
@@ -215,13 +253,41 @@ class TestTableDataAndImage(CheckData):
           'path-order': 'sort_r'},
          data_file_tree_1,
          []),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'image': 'fig.png',
+          'base': 'ex',
+          'link': '%(relpath)s',
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         ['data_1', 'data_2', 'data_3']),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'image': 'fig.png fig2.png',
+          'base': 'ex',
+          'widths': '1 2',  # not enough number of widths
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         [],
+         ['WARNING/2',
+          'Not enough widths arguments for table-data: "1 2"']),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'image': 'fig.png fig2.png',
+          'base': 'ex',
+          'widths': '1 2 3 4',  # too many number of widths
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         [],
+         ['WARNING/2',
+          'Too many widths arguments for table-data: "1 2 3 4"']),
         ]
 
     @staticmethod
     def genedir(args=[], **dirdata):
         return dirtext('table-data-and-image', '', *args, **dirdata)
 
-    def check(self, dirdata, file_tree, links):
+    def check(self, dirdata, file_tree, links, errors=[]):
         page_text = self.genedir(**dirdata)
 
         page_path = 'it does not depend on the page_path'
@@ -229,7 +295,9 @@ class TestTableDataAndImage(CheckData):
         DictTable = MockDictTable.new_mock(file_tree)
         glob_list = Mock(return_value=sorted(file_tree))
         setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
-        page_html = gene_html(page_text, page_path, _debug=True)
+        with CaptureStdIO() as stdio:
+            page_html = gene_html(page_text, page_path, _debug=True)
+        stderr = stdio.read_stderr()
 
         for key in dirdata['data'].split():
             td_tag = '<td>{0}</td>'.format(key)
@@ -239,6 +307,15 @@ class TestTableDataAndImage(CheckData):
             eq_(num_td, num_data,
                 "there must be #{0} of '{2}'. #{1} exists".format(
                     num_data, num_td, td_tag))
+
+        for link in links:
+            assert '{0}</a>'.format(link) in page_html
+
+        for error in errors:
+            assert escape(error, True) in page_html
+            assert error in stderr
+        if not errors:
+            assert not stderr
 
 
 class TestFindImages(CheckData):
