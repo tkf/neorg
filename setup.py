@@ -110,7 +110,7 @@ setup(
     keywords='numerical simulation, research',
     license=neorg.__license__,
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",
         "License :: OSI Approved :: MIT License",
@@ -127,6 +127,7 @@ setup(
         },
     cmdclass=cmdclass,
     install_requires=[
+        'docutils',
         'Flask',
         'argparse',
     ],
