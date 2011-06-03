@@ -10,7 +10,7 @@
 Special directives
 ==================
 
-A :term:`directive` is a general reST block markup.
+A :term:`directive` is a general `reStructuredText`_ block markup.
 With the special directives defined by NEOrg, you can fetch data and
 images, show them effectively, and organize your notes.
 
@@ -307,8 +307,8 @@ Glossary
 .. glossary::
 
    directive
-       A directive is one of the reST block markup in the following
-       shape:
+       A directive is one of the `reStructuredText`_ block markup in
+       the following shape:
 
        .. sourcecode:: rst
 
@@ -398,7 +398,7 @@ Glossary
 
        .. warning::
 
-          If someone can access to
+          If someone can access to the
           NEOrg running in debug mode, he can do anything your python
           can do, such as deleting files.  Thus, **debug mode should
           not be used on an untrusted network.**
@@ -455,6 +455,30 @@ Just type a page path to the browser's address bar, e.g.::
     http://localhost:8000/my/new/page/
 
 and then you will see the edit form, if the page does not exist.
+
+
+How do I make a link to the other page?
+---------------------------------------
+
+If a string starts with ``/``, ``./`` or ``../``, ends with ``/``
+and contains only alphabets, numbers and ``_.+-``` then it will
+be regarded as a link.  For example::
+
+    /full/path/link/
+    ./link/to/a/sub/page/
+    ../link/to/a/sibling/page/
+
+Note that this markup is weaker than any other `reStructuredText`_
+markups.  For example, the following is not regraded as a link::
+
+    /texsts_with_a_-hyphen-after-the-under_score/
+
+This is because ``texsts_with_a_`` is regraded as a hyper linke
+target (and you will get a "Docutils Sysmtem Message" unexpectedly!).
+You should escape the "tailing" underscore ``_`` with a slash ``\``
+like this::
+
+    /texsts_with_a\_-hyphen-after-the-under_score/
 
 
 Docuitils links

@@ -80,6 +80,18 @@ class TestPagePathInlineMarkup(CheckData):
          [],
          ['/texts/in/the/hyper/link/'],
          ),
+        (trim("""
+         /texsts_with_a_-hyphen-after-the-under_score/
+         """),  # known issue
+         [],
+         ['/texsts_with_a_-hyphen-after-the-under_score/'],
+         ),
+        (trim("""
+         /texsts_with_a\_-hyphen-after-the-under_score/
+         """),  # this (^-- this slash!) is a workaround
+         ['/texsts_with_a_-hyphen-after-the-under_score/'],
+         [],
+         ),
         ]
 
     def check(self, page_text, links, not_links):
@@ -87,7 +99,11 @@ class TestPagePathInlineMarkup(CheckData):
         web = object()  # web shuold not be used
         DictTable = object()  # DictTable should not be used
         setup_wiki(web=web, DictTable=DictTable)
-        page_html = gene_html(page_text, page_path)
+        page_html = gene_html(page_text, page_path,
+                              settings_overrides={
+                                  # ignore docutils system errors
+                                  'report_level': 4,
+                                  })
 
         def html_link(link):
             return 'href="%(link)s">%(link)s</a>' % {'link': link}
