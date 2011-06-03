@@ -853,6 +853,70 @@ def setup_wiki(web=None, DictTable=None, glob_list=None):
         directives.register_directive(cls._dirc_name, cls)
 
 
+def safecall(tb_temp='%s'):
+    """
+    Decorator to call a function w/o a system error
+
+    This decorator adds two "hidden" arguments to the original function.
+
+    _debug : bool
+        If this argument is True, the error occurred int the function
+        call will not be suppressed.  (Default: False)
+    _mix : bool
+        If this argument is True, the traceback will be returned
+        instead of the original returned value when the error occurred.
+        If this argument is False, the original result and traceback
+        will be returned in 2-tuple always.  (Default: False)
+
+
+    >>> @safecall()
+    ... def somethingwrong(wrong):
+    ...     if wrong == 'wrong':
+    ...         raise Exception(wrong)
+    ...     return wrong
+    ...
+    >>> somethingwrong('nothing wrong')
+    'nothing wrong'
+    >>> somethingwrong('nothing wrong', _mix=False)
+    ('nothing wrong', None)
+    >>> tb = somethingwrong('wrong')  # error will be suppressed
+    >>> tb.splitlines()[-1]
+    'Exception: wrong'
+    >>> somethingwrong('wrong', _debug=True)  # error will be raised
+    Traceback (most recent call last):
+        ...
+    Exception: wrong
+
+    """
+
+    def decorator(func):
+        from functools import wraps
+
+        @wraps(func)
+        def wrapper(*args, **kwds):
+            mix = kwds.pop('_mix', True)
+            if kwds.pop('_debug', False):
+                result = func(*args, **kwds)
+                tb = None
+            else:
+                try:
+                    result = func(*args, **kwds)
+                    tb = None
+                except:
+                    import traceback
+                    import cgi
+                    result = None
+                    tb = tb_temp % cgi.escape(traceback.format_exc())
+            if mix:
+                return result if tb is None else tb
+            else:
+                return (result, tb)
+
+        return wrapper
+    return decorator
+
+
+@safecall('<h1>Failed to generate HTML</h1><pre>%s</pre>')
 def gene_html(text, page_path=None, settings_overrides={}):
     from docutils.core import publish_parts
     new_settings_overrides = SAFE_DOCUTILS.copy()

@@ -14,11 +14,11 @@ import os
 import re
 import tempfile
 import shutil
-from nose.tools import raises
+from nose.tools import raises, assert_raises
 
 from neorg import web
 from neorg.config import DefaultConfig
-from neorg.tests.utils import trim
+from neorg.tests.utils import trim, CaputureStdIO
 
 TMP_PREFIX = 'neorg-tmp'
 
@@ -309,6 +309,37 @@ class TestNEOrgWeb(TestNEOrgWebBase):
             page_path = urljoin(page_root, page_relpath)
             for num in range(1, num_max + 1):
                 yield (self.check_temp, page_path, page_text, num)
+
+    def test_no_fail_page(self):
+
+        def gene_page_with_error(debug):
+            page_text = "nonexistent_target_"
+            page_html = self.gene_html(
+                page_text,
+                settings_overrides={
+                  'halt_level': 2,  # raise Error
+                  },
+               _debug=debug)
+            return page_html
+
+        # error must NOT be suppressed when _debug=True
+        from docutils.utils import SystemMessage
+        with CaputureStdIO() as stdio:  # suppress stderr
+            assert_raises(SystemMessage, gene_page_with_error,
+                          debug=True)
+            stdio.stderr.seek(0)
+            stderr = stdio.stderr.read()
+        assert ('(ERROR/3) Unknown target name: "nonexistent_target".'
+                in stderr)
+
+        # error must be suppressed when _debug=False
+        with CaputureStdIO() as stdio:  # suppress stderr
+            page_html = gene_page_with_error(debug=False)
+            stdio.stderr.seek(0)
+            stderr = stdio.stderr.read()
+        assert ('(ERROR/3) Unknown target name: "nonexistent_target".'
+                in stderr)
+        assert '<h1>Failed to generate HTML</h1>' in page_html
 
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):

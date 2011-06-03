@@ -3,7 +3,7 @@ from glob import glob
 from itertools import product
 from docutils import nodes, utils
 from mock import Mock
-from nose.tools import eq_
+from nose.tools import eq_, assert_raises
 
 from neorg.wiki import setup_wiki, gene_html
 from neorg.tests.utils import MockWeb, MockDictTable, CheckData, trim
@@ -238,3 +238,33 @@ class TestConvTexts(CheckData):
                       # ignore docutils system errors
                       'report_level': 4,
                       })
+
+
+class CheckException(Exception):
+    pass
+
+
+def test_gene_html_no_fail():
+    exception_message = (
+        '`gene_html` should not fail whatever happen during the '
+        'html generation, provided DEBUG=False')
+    page_text = trim("""
+    .. dictdiff:: *
+
+    dictdiff is for raising Exception via DictTable
+    """)
+    page_path = 'it does not depend on the page_path'
+    web = MockWeb()
+    DictTable = Mock()
+    DictTable.from_path_list = Mock(
+        side_effect=CheckException(exception_message))
+    glob_list = Mock(return_value=[])
+    setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+
+    # error must be suppressed when _debug=False
+    page_html = gene_html(page_text, page_path, _debug=False)
+    assert exception_message in page_html   # TB will be returned
+
+    # error must NOT be suppressed when _debug=True
+    assert_raises(CheckException, gene_html,
+                  page_text, page_path, _debug=True)

@@ -1,4 +1,9 @@
 import sys
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 from mock import Mock
 import neorg.data
 
@@ -91,3 +96,22 @@ def trim(docstring):
         trimmed.pop(0)
     # Return a single string:
     return '\n'.join(trimmed)
+
+
+class CaputureStdIO(object):
+
+    def __enter__(self):
+        import sys
+        self._orig_stdin = sys.stdin
+        self._orig_stdout = sys.stdout
+        self._orig_stderr = sys.stderr
+
+        self.stdin = sys.stdin = StringIO()
+        self.stdout = sys.stdout = StringIO()
+        self.stderr = sys.stderr = StringIO()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stdin = self._orig_stdin
+        sys.stdout = self._orig_stdout
+        sys.stderr = self._orig_stderr
