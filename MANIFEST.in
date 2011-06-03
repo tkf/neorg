@@ -1,0 +1,4 @@
+include neorg/schema.sql
+include neorg/templates/*.html
+recursive-include neorg/static *.css *.html *.ico *.inv *.js *.png *.txt
+recursive-include neorg/tests *.txt
