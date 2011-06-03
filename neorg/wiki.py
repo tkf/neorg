@@ -507,6 +507,7 @@ class TableData(Directive):
     _dirc_name = 'table-data'
     _web = None  # needs override
     _DictTable = None  # needs override
+    _glob_list = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -534,10 +535,11 @@ class TableData(Directive):
 
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
-        data_syspath_list = glob_list([path.join(base_syspath,
-                                                 directives.uri(arg))
-                                       for arg in self.arguments],
-                                      glob_list_sorted)
+        data_syspath_list = self._glob_list(
+            [path.join(base_syspath,
+                       directives.uri(arg))
+             for arg in self.arguments],
+            glob_list_sorted)
         from_base_list = [
             path.relpath(x, base_syspath) for x in data_syspath_list]
 
@@ -582,6 +584,7 @@ class TableDataAndImage(Directive):
     _dirc_name = 'table-data-and-image'
     _web = None  # needs override
     _DictTable = None  # needs override
+    _glob_list = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -612,10 +615,11 @@ class TableDataAndImage(Directive):
 
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
-        data_syspath_list = glob_list([path.join(base_syspath,
-                                                 directives.uri(arg))
-                                       for arg in self.arguments],
-                                      glob_list_sorted)
+        data_syspath_list = self._glob_list(
+            [path.join(base_syspath,
+                       directives.uri(arg))
+             for arg in self.arguments],
+            glob_list_sorted)
 
         data_keys = self.options.get('data', [])
         image_names = self.options.get('image', [])
@@ -684,6 +688,7 @@ class FindImages(Directive):
     _dirc_name = 'find-images'
     _web = None  # needs override
     _DictTable = None  # needs override
+    _glob_list = None  # needs override
 
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
@@ -701,9 +706,10 @@ class FindImages(Directive):
 
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
-        image_syspath_list = glob_list([path.join(base_syspath,
-                                                  directives.uri(arg))
-                                        for arg in self.arguments])
+        image_syspath_list = self._glob_list(
+            [path.join(base_syspath,
+                       directives.uri(arg))
+             for arg in self.arguments])
 
         def gene_image(relpath):
             image_node = nodes.image(

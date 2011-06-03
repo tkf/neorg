@@ -20,6 +20,39 @@ def doctree_from_dict(data):
     return node
 
 
+def dirtext(directive, contents, *args, **kwds):
+    """
+    Generate directive text from data
+
+    >>> print dirtext('image', '', 'fig.png', width='100px')
+    .. image:: fig.png
+       :width: 100px
+    >>> print dirtext('csv-table', ['0,1,2', '3,4,5'],
+    ...               'Numbers', keepspace=None)
+    .. csv-table:: Numbers
+       :keepspace:
+    <BLANKLINE>
+       0,1,2
+       3,4,5
+
+    """
+
+    lines = ['.. {0}:: {1}'.format(directive, ' '.join(args))]
+
+    for (key, val) in kwds.iteritems():
+        key = key.replace('_', '-')
+        if val is None:
+            lines.append('   :{0}:'.format(key))
+        else:
+            lines.append('   :{0}: {1}'.format(key, val))
+    if contents:
+        lines.append('')
+        if isinstance(contents, basestring):
+            contents = contents.splitlines()
+        lines += map('   {0}'.format, contents)
+    return '\n'.join(lines)
+
+
 class TestListPages(CheckData):
     data = [
         (['./', './Sub', './Sub/SubPage', './Sub/Sub/SubPage'],
@@ -112,6 +145,152 @@ class TestPagePathInlineMarkup(CheckData):
             assert html_link(l) in page_html
         for l in not_links:
             assert html_link(l) not in page_html
+
+
+class TestTableData(CheckData):
+    data_file_tree_1 = {
+        'ex/data_1/file.pickle': {'a': 1, 'b': 0},
+        'ex/data_2/file.pickle': {'a': 2, 'b': 0},
+        'ex/data_3/file.pickle': {'a': 3, 'b': 0},
+        }
+
+    data = [
+        ({'args': ['ex/data*/file.pickle'],
+          'data': 'a b',},
+         data_file_tree_1,
+         []),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'base': 'ex',
+          'widths': '1 2 2',
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         []),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'base': 'ex',
+          'widths': '1 2 2 2',  # four columns, because of `trans`
+          'trans': None,
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         []),
+        ]
+
+    @staticmethod
+    def genedir(args, **dirdata):
+        return dirtext('table-data', '', *args, **dirdata)
+
+    def check(self, dirdata, file_tree, links):
+        page_text = self.genedir(**dirdata)
+
+        page_path = 'it does not depend on the page_path'
+        web = MockWeb()
+        DictTable = MockDictTable.new_mock(file_tree)
+        glob_list = Mock(return_value=sorted(file_tree))
+        setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+        page_html = gene_html(page_text, page_path, _debug=True)
+
+        for key in dirdata['data'].split():
+            td_tag = '<td>{0}</td>'.format(key)
+            assert td_tag in page_html
+
+
+
+class TestTableDataAndImage(CheckData):
+    data_file_tree_1 = {
+        'ex/data_1/file.pickle': {'a': 1, 'b': 0},
+        'ex/data_2/file.pickle': {'a': 2, 'b': 0},
+        'ex/data_3/file.pickle': {'a': 3, 'b': 0},
+        }
+
+    data = [
+        ({'args': ['ex/data*/file.pickle'],
+          'data': 'a b',},
+         data_file_tree_1,
+         []),
+        ({'args': ['data*/file.pickle'],
+          'data': 'a b',
+          'image': 'fig.png',
+          'base': 'ex',
+          'path-order': 'sort_r'},
+         data_file_tree_1,
+         []),
+        ]
+
+    @staticmethod
+    def genedir(args=[], **dirdata):
+        return dirtext('table-data-and-image', '', *args, **dirdata)
+
+    def check(self, dirdata, file_tree, links):
+        page_text = self.genedir(**dirdata)
+
+        page_path = 'it does not depend on the page_path'
+        web = MockWeb()
+        DictTable = MockDictTable.new_mock(file_tree)
+        glob_list = Mock(return_value=sorted(file_tree))
+        setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+        page_html = gene_html(page_text, page_path, _debug=True)
+
+        for key in dirdata['data'].split():
+            td_tag = '<td>{0}</td>'.format(key)
+            num_td = page_html.count(td_tag)
+            num_data = len(filter(lambda d: key in d,
+                                  file_tree.itervalues()))
+            eq_(num_td, num_data,
+                "there must be #{0} of '{2}'. #{1} exists".format(
+                    num_data, num_td, td_tag))
+
+
+class TestFindImages(CheckData):
+
+    data = [
+        ({'args': ['ex/*/fig.png']},
+         map('ex/data_{0}/fig.png'.format, range(3))),
+        ({'args': ['*/fig.png'], 'base': 'ex'},
+         map('ex/data_{0}/fig.png'.format, range(3))),
+        ]
+
+    @staticmethod
+    def genedir(args=[], **dirdata):
+        return dirtext('find-images', '', *args, **dirdata)
+
+    def check(self, dirdata, files):
+        page_text = self.genedir(**dirdata)
+
+        page_path = 'it does not depend on the page_path'
+        web = MockWeb()
+        DictTable = None  # it will not be called
+        glob_list = Mock(return_value=sorted(files))
+        setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+        page_html = gene_html(page_text, page_path, _debug=True)
+
+        datadir = web.app.config['DATADIRPATH']
+        base_syspath = os.path.join(datadir, dirdata.get('base', ''))
+        glob_list.assert_called_with(
+            map(lambda arg: os.path.join(base_syspath, arg),
+                dirdata['args']))
+        eq_(page_html.count('<img'), len(files))
+
+
+class TestListPages(CheckData):
+    data = [
+        ('',  # root page
+         ['sub/page', 'sub/sub/page']),
+        ('some/page',
+         ['sub/page', 'sub/sub/page']),
+        ]
+
+    def check(self, page_path, list_descendants):
+        page_text = '.. list-pages::'
+        web = MockWeb(list_descendants=list_descendants)
+        DictTable = None  # it will not be called
+        glob_list = None  # it will not be called
+        setup_wiki(web=web, DictTable=DictTable, glob_list=glob_list)
+        page_html = gene_html(page_text, page_path, _debug=True)
+
+        web.list_descendants.assert_called_with(page_path)
+        for subpage in list_descendants:
+            assert subpage in page_html
 
 
 class TestDictDiff(CheckData):
