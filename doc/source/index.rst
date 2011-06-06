@@ -527,3 +527,4 @@ Other contents
 
    examples
    commands
+   changelog
