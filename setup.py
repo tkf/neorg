@@ -11,7 +11,9 @@ try:
 except ImportError:
     BUILD_SPHINX_AVAILABLE = False
 import neorg
+from neorg.verutils import current_version
 
+current_version()  # make sure current version is a valid version
 
 data_list = ['schema.sql', 'templates/*.html'] + [
     os.path.join('%s' % d, '*.%s' % e)
