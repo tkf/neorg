@@ -18,7 +18,7 @@ from nose.tools import raises, assert_raises
 
 from neorg import web
 from neorg.config import DefaultConfig
-from neorg.tests.utils import trim, CaptureStdIO
+from neorg.tests.utils import trim, CaptureStdIO, ChangeNEOrgVersion
 
 TMP_PREFIX = 'neorg-tmp'
 
@@ -99,6 +99,41 @@ class TestNEOrgWeb(TestNEOrgWebBase):
        assert sysinfo['version'] == __version__
        assert sysinfo['updated'].startswith('20')
        assert sysinfo['updated'][:4].isdigit()
+
+    def test_update_system_info_to_current(self):
+        from neorg.web import update_system_info, system_info
+        sysinfo_0 = system_info()
+        update_system_info()
+        sysinfo_1 = system_info()
+        assert sysinfo_0 == sysinfo_1  # nothing changed
+
+    def test_update_system_info_to_newer(self):
+        import neorg
+        from neorg.web import update_system_info
+        newer_version = '1.0.0'
+        assert newer_version > neorg.__version__  # make sure it is newer
+        with ChangeNEOrgVersion(newer_version):
+            # version has been changed
+            assert_raises(AssertionError, self.test_system_info)
+            # update success w/o an error
+            update_system_info()
+            # check if the version was updated
+            self.test_system_info()
+        # DB has been changed
+        assert_raises(AssertionError, self.test_system_info)
+
+    def test_update_system_info_to_older(self):
+        import neorg
+        from neorg.web import update_system_info
+        older_version = '0.0.0'
+        assert older_version < neorg.__version__  # make sure it is older
+        with ChangeNEOrgVersion(older_version):
+            # version has been changed
+            assert_raises(AssertionError, self.test_system_info)
+            # update fails wtih an RuntimeError
+            assert_raises(RuntimeError, update_system_info)
+        # DB has not been changed
+        self.test_system_info()
 
     @staticmethod
     def gene_page_paths(num, prefix="test"):

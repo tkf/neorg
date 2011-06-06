@@ -1,10 +1,11 @@
 def serve(port, root=None, debug=None, browser=None):
-    from neorg.web import app
+    from neorg.web import app, update_system_info
     from neorg.config import load_config
     from neorg.wiki import setup_wiki
     load_config(app, dirpath=root)
     if debug is not None:
         app.config['DEBUG'] = debug
+    update_system_info()
     if browser:
         from threading import Timer
         from webbrowser import open_new_tab

@@ -141,13 +141,14 @@ def connect_db():
 
 def init_db():
     """Creates the database tables."""
-    from neorg import __version__
+    from neorg.verutils import current_version
+    curver = current_version()
     with closing(connect_db()) as db:
         with app.open_resource('schema.sql') as f:
             db.cursor().executescript(f.read())
         db.execute(
             'insert into system_info (version) values (?)',
-            [__version__])
+            [str(curver)])
         db.commit()
 
 
@@ -163,12 +164,45 @@ def system_info():
 
     """
     with closing(connect_db()) as db:
-        sysinfo_current = db.execute(
-            'select * from system_info').fetchone()
+        sysinfo_current = db.execute(  # fetch the newest one
+            'select *, max(updated) from system_info').fetchone()
     if sysinfo_current:
         return dict(zip(
             ['version', 'updated'],
-            sysinfo_current))
+            sysinfo_current[:-1]))  # ignore the tailing max(update)
+
+
+def update_system_info():
+    """
+    Check and update current system info if the stored one is old
+
+    This function **fail** with RuntimeError if the version in the
+    stored system info is newer than the current running one.
+
+    .. warning::
+
+       Do NOT use this in app.
+
+    """
+    from neorg.verutils import NEOrgVersion, current_version
+    sysinfo = system_info()
+    oldver = NEOrgVersion(sysinfo['version'])
+    curver = current_version()
+    if oldver == curver:
+        pass
+    elif oldver < curver:
+        print "You updated NEOrg. Updating database..."
+        with closing(connect_db()) as db:
+            db.execute(
+                'insert into system_info (version) values (?)',
+                [str(curver)])
+            db.commit()
+        print "Finished."
+    else:
+        raise RuntimeError(
+            'The old version ({0}) is newer than the version of the '
+            'running version ({1}). Please install newer version'
+            .format(oldver, curver))
 
 
 @app.before_request

@@ -123,3 +123,20 @@ class CaptureStdIO(object):
     def read_stderr(self):
         self.stderr.seek(0)
         return self.stderr.read()
+
+
+class ChangeNEOrgVersion(object):
+    import neorg
+    from neorg.verutils import NEOrgVersion
+
+    def __init__(self, verstr):
+        self.NEOrgVersion(verstr)  # make sure it is a valid version
+        self.verstr = verstr
+
+    def __enter__(self):
+        self.true_version = self.neorg.__version__
+        self.neorg.__version__ = self.verstr
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.neorg.__version__ = self.true_version
