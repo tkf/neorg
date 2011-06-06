@@ -79,6 +79,8 @@ class TestListPages(CheckData):
 
 
 class TestPagePathInlineMarkup(CheckData):
+    data_symbols = ',!?;:(){}[]<>@#$%^&-+|\\~\'\"='
+
     data = [
         (trim("""
          This should become an /link/to/the/other/page/.
@@ -127,6 +129,12 @@ class TestPagePathInlineMarkup(CheckData):
          ['/texsts_with_a_-hyphen-after-the-under_score/'],
          [],
          ),
+        ] + [
+        ('%s/starts/with/' % s, ['/starts/with/'], [])
+        for s in '/' + data_symbols
+        ] + [
+        ('/ends/with/%s' % s, ['/ends/with/'], [])
+        for s in '.' + data_symbols
         ]
 
     def check(self, page_text, links, not_links):
@@ -144,9 +152,11 @@ class TestPagePathInlineMarkup(CheckData):
             return 'href="%(link)s">%(link)s</a>' % {'link': link}
 
         for l in links:
-            assert html_link(l) in page_html
+            assert html_link(l) in page_html, \
+                   "link '%s' should be in `page_html`" % l
         for l in not_links:
-            assert html_link(l) not in page_html
+            assert html_link(l) not in page_html, \
+                   "link '%s' should NOT be in `page_html`" % l
 
 
 class TestTableData(CheckData):

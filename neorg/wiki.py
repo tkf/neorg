@@ -85,7 +85,7 @@ class SafeMagic(object):
 
 def convert_page_path_to_nodes(text, node_list=[]):
     split = _RE_PAGE_PATH.split(text, maxsplit=1)
-    if len(split) == 7:
+    if len(split) == 8:
         pre = ''.join(split[:2])
         page_path = split[2]
         rest = ''.join(split[-2:])
@@ -95,10 +95,14 @@ def convert_page_path_to_nodes(text, node_list=[]):
     elif len(split) == 1:
         return node_list + [nodes.Text(text)]
 
+_PAGE_PATH_SE_SYMBOLS = ',!?;:(){}[]<>@#$%^&-+|\\~\'\"='
 _RE_PAGE_PATH = re.compile(
-    r'(?P<head>^|\s)'
-    r'(?P<page_path>(\.{0,2}/)+([a-zA-Z0-9][a-zA-Z0-9_\-\.\+]*/)*)'
-    r'(?P<tail>$|[\s\.!\?:;,])')
+    r'(?P<head>^|[\s%s])'
+    r'(?P<page_path>(/|(\.{1,2}/)+)([a-zA-Z0-9][a-zA-Z0-9_\-\.\+]*/)*)'
+    r'(?P<tail>$|[\s%s])'
+    % ('/' + re.escape(_PAGE_PATH_SE_SYMBOLS),  # can be starts with this
+       '.' + re.escape(_PAGE_PATH_SE_SYMBOLS),  # can be ends with this
+       ))
 
 
 def condition_page_path(nd):
