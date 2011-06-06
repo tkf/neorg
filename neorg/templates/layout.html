@@ -3,7 +3,17 @@
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
-    <title>{{ title }} | NEOrg</title>
+    <title>
+      {%- block title_prefix %}{% endblock -%}
+      {%- if title -%}
+          {%- block title_normal -%}
+              {{ title }}
+          {%- endblock %}
+      {%- else -%}
+          {%- block title_root -%}
+              {{ "<root page>" }}
+          {%- endblock %}
+      {%- endif %} | NEOrg</title>
     <link rel="stylesheet type=text/css"
           href="{{ url_for('static', filename='html4css1.css') }}" />
     <link rel="stylesheet type=text/css"

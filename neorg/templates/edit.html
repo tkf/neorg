@@ -1,4 +1,6 @@
 {% extends "page.html" %}
+{%- block title_prefix %}Edit - {% endblock -%}
+{%- block title_root -%}{{ "<root page>" }}{% endblock -%}
 {% block body %}
   <form action="{{ url_for('save', page_path=page_path) }}"
         method="post" class="add-entry">
