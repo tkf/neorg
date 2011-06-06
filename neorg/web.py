@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import with_statement
 import os
 import re
@@ -126,6 +127,13 @@ def find_descendants(path):
         row[0] for row in
         g.db.execute("select page_path from pages").fetchall()]
     return filter_descendants(path, path_list)
+
+
+def path_as_title(path):
+    """
+    Convert page path to a title
+    """
+    return u' « '.join(reversed(path.split('/')))
 
 
 ROOT_TITLE = 'Organize your experiments and find out more!'
@@ -262,7 +270,7 @@ def delete(page_path):
 def confirm_delete(page_path):
     (page_text, page_html) = get_page_text_and_html(page_path)
     return render_template("confirm_delete.html",
-                           title='Delete this page - ' + (page_path or ROOT_TITLE),
+                           title='Delete this page - ' + (path_as_title(page_path) or ROOT_TITLE),
                            page_path=page_path,
                            page_html=page_html)
 
@@ -293,7 +301,7 @@ def save(page_path):
             flash('Previewing... Not yet saved!')
         return render_template(
             "edit.html",
-            title='Preview - ' + (page_path or ROOT_TITLE),
+            title='Preview - ' + (path_as_title(page_path) or ROOT_TITLE),
             page_path=page_path,
             page_text=page_text,
             page_html=page_html)
@@ -309,7 +317,7 @@ def save(page_path):
 def edit(page_path):
     (page_text, page_html) = get_page_text_and_html(page_path)
     return render_template("edit.html",
-                           title='Edit - ' + (page_path or ROOT_TITLE),
+                           title='Edit - ' + (path_as_title(page_path) or ROOT_TITLE),
                            page_path=page_path,
                            page_html=page_html,
                            page_text=page_text if page_text else '')
@@ -321,7 +329,7 @@ def page(page_path):
     (page_text, page_html) = get_page_text_and_html(page_path)
     if page_text:
         return render_template("page.html",
-                               title=page_path or ROOT_TITLE,
+                               title=path_as_title(page_path) or ROOT_TITLE,
                                page_path=page_path,
                                page_html=page_html)
     else:
@@ -367,7 +375,7 @@ def gene_from_template(page_path):
             page_html = gene_html(page_text, page_path,
                                   _debug=app.config['DEBUG'])
         return render_template("page.html",
-                               title=page_path or ROOT_TITLE,
+                               title=path_as_title(page_path) or ROOT_TITLE,
                                temp_path=temp_path,
                                page_path=page_path,
                                page_html=page_html)
@@ -382,7 +390,7 @@ def list_descendants(page_path):
 def descendants(page_path):
     link_list = list_descendants(page_path)
     return render_template("descendants.html",
-                           title='Descendants - ' + (page_path or ROOT_TITLE),
+                           title='Descendants - ' + (path_as_title(page_path) or ROOT_TITLE),
                            link_list=link_list,
                            page_path=page_path)
 
@@ -398,7 +406,7 @@ def history(page_path):
     page_history = [dict(zip(page_history_keys, row))
                     for row in reversed(page_history_list)]
     return render_template("history.html",
-                           title='History - ' + (page_path or ROOT_TITLE),
+                           title='History - ' + (path_as_title(page_path) or ROOT_TITLE),
                            page_path=page_path,
                            page_history=page_history)
 
@@ -412,7 +420,7 @@ def old(page_path, history_id):
     page_html = gene_html(page_text[0], page_path,
                           _debug=app.config['DEBUG'])
     return render_template("page.html",
-                           title=page_path or ROOT_TITLE,
+                           title=path_as_title(page_path) or ROOT_TITLE,
                            page_path=page_path,
                            page_html=page_html)
 

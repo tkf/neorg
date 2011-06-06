@@ -1,6 +1,11 @@
 ChangeLog
 =========
 
+v0.0.3
+^^^^^^
+
+- Use reversed :term:`page path` as a page title.
+
 v0.0.2
 ^^^^^^
 

@@ -52,7 +52,11 @@ def setup_app():
 
     from neorg.wiki import setup_wiki, gene_html
     setup_wiki()
-    return (app, db_fd, gene_html)
+
+    def gene_html_with_encode(*args, **kwds):
+        return gene_html(*args, **kwds).encode('utf-8')
+
+    return (app, db_fd, gene_html_with_encode)
 
 
 def teardown_app():
