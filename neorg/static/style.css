@@ -26,6 +26,10 @@ a {
     float: right;
 }
 
+.search-form {
+    float: right;
+}
+
 h1, h2, h3, h4, h5, h6 {
     color: #155315;
 }
@@ -36,7 +40,7 @@ h1, h2 {
 }
 
 .page {
-    margin: 2em auto;
+    margin: auto;
 }
 
 .entries {

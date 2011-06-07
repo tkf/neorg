@@ -474,3 +474,16 @@ def help(filename):
     else:
         return redirect(url_for('static',
                                 filename=os.path.join('help', filename)))
+
+
+@app.route('/_search')
+def search_results():
+    query = request.args.get('q')
+    if query:
+        results = search.search(get_search_index(), query, get_page_text)
+        return render_template("search.html",
+                               title=query,
+                               search_query=query,
+                               results=list(results))
+    else:
+        return redirect(url_for('page', page_path=''))

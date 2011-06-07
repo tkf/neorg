@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{%- block title_prefix %}Search results - {% endblock -%}
+{% block body %}
+  <div>
+    <h1>Search results: "{{ title }}"</h1>
+    {% for (page_path, highlights) in results %}
+    <h2><a href="/{{ page_path }}">/{{ page_path }}</a></h2>
+    <p>{{ highlights|safe }}</p>
+    {% endfor %}
+  </div>
+{% endblock %}
