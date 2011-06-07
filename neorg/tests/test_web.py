@@ -90,8 +90,8 @@ class TestNEOrgWebFast(object):
     def tearDownClass(cls):
         teardown_app()
 
-
-if os.environ.get("NEORG_FASTTEST") or False:
+NEORG_FASTTEST = os.environ.get("NEORG_FASTTEST") or False
+if NEORG_FASTTEST:
     TestNEOrgWebBase = TestNEOrgWebFast
 else:
     TestNEOrgWebBase = TestNEOrgWebSlow
@@ -99,49 +99,6 @@ else:
 
 class TestNEOrgWeb(TestNEOrgWebBase):
     num_test = 3  # Number of test for generated page
-
-    def test_system_info(self):
-        from neorg import __version__
-        from neorg.web import system_info
-        sysinfo = system_info()
-        assert sysinfo['version'] == __version__
-        assert sysinfo['updated'].startswith('20')
-        assert sysinfo['updated'][:4].isdigit()
-
-    def test_update_system_info_to_current(self):
-        from neorg.web import update_system_info, system_info
-        sysinfo_0 = system_info()
-        update_system_info()
-        sysinfo_1 = system_info()
-        assert sysinfo_0 == sysinfo_1  # nothing changed
-
-    def test_update_system_info_to_newer(self):
-        import neorg
-        from neorg.web import update_system_info
-        newer_version = '1.0.0'
-        assert newer_version > neorg.__version__  # make sure it is newer
-        with ChangeNEOrgVersion(newer_version):
-            # version has been changed
-            assert_raises(AssertionError, self.test_system_info)
-            # update success w/o an error
-            update_system_info()
-            # check if the version was updated
-            self.test_system_info()
-        # DB has been changed
-        assert_raises(AssertionError, self.test_system_info)
-
-    def test_update_system_info_to_older(self):
-        import neorg
-        from neorg.web import update_system_info
-        older_version = '0.0.0'
-        assert older_version < neorg.__version__  # make sure it is older
-        with ChangeNEOrgVersion(older_version):
-            # version has been changed
-            assert_raises(AssertionError, self.test_system_info)
-            # update fails wtih an RuntimeError
-            assert_raises(RuntimeError, update_system_info)
-        # DB has not been changed
-        self.test_system_info()
 
     @staticmethod
     def gene_page_paths(num, prefix="test"):
@@ -190,9 +147,9 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         delete_path = urljoin('/', page_path, "_delete")
         response = self.app.post(delete_path, data={
             'yes': 'Yes',
-            }, follow_redirects=True)
+            })
         assert page_html not in response.data
-        assert '<form action="/_save"' in response.data
+        assert response.location == "http://localhost/"
 
     def check_delete_no(self, page_path, page_text):
         (save_response, page_html,
@@ -345,6 +302,12 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         assert "path: %s" % page_path in response.data
         assert "relpath: /%s" % '/'.join(args) in response.data
 
+        # clean up is needed to avoid the template page to match
+        # another page. this is required when NEORG_FASTTEST is
+        # specified.
+        if NEORG_FASTTEST:
+            self.check_delete_yes(temp_path, '')
+
     def test_temp(self):
         page_root = 'TestTempRoot'
         num_max = 3
@@ -436,6 +399,49 @@ class TestNEOrgWeb(TestNEOrgWebBase):
 
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):
+
+    def test_system_info(self):
+        from neorg import __version__
+        from neorg.web import system_info
+        sysinfo = system_info()
+        assert sysinfo['version'] == __version__
+        assert sysinfo['updated'].startswith('20')
+        assert sysinfo['updated'][:4].isdigit()
+
+    def test_update_system_info_to_current(self):
+        from neorg.web import update_system_info, system_info
+        sysinfo_0 = system_info()
+        update_system_info()
+        sysinfo_1 = system_info()
+        assert sysinfo_0 == sysinfo_1  # nothing changed
+
+    def test_update_system_info_to_newer(self):
+        import neorg
+        from neorg.web import update_system_info
+        newer_version = '1.0.0'
+        assert newer_version > neorg.__version__  # make sure it is newer
+        with ChangeNEOrgVersion(newer_version):
+            # version has been changed
+            assert_raises(AssertionError, self.test_system_info)
+            # update success w/o an error
+            update_system_info()
+            # check if the version was updated
+            self.test_system_info()
+        # DB has been changed
+        assert_raises(AssertionError, self.test_system_info)
+
+    def test_update_system_info_to_older(self):
+        import neorg
+        from neorg.web import update_system_info
+        older_version = '0.0.0'
+        assert older_version < neorg.__version__  # make sure it is older
+        with ChangeNEOrgVersion(older_version):
+            # version has been changed
+            assert_raises(AssertionError, self.test_system_info)
+            # update fails wtih an RuntimeError
+            assert_raises(RuntimeError, update_system_info)
+        # DB has not been changed
+        self.test_system_info()
 
     def test_empty_db(self):
         response = self.app.get('/')
