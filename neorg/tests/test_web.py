@@ -101,12 +101,12 @@ class TestNEOrgWeb(TestNEOrgWebBase):
     num_test = 3  # Number of test for generated page
 
     def test_system_info(self):
-       from neorg import __version__
-       from neorg.web import system_info
-       sysinfo = system_info()
-       assert sysinfo['version'] == __version__
-       assert sysinfo['updated'].startswith('20')
-       assert sysinfo['updated'][:4].isdigit()
+        from neorg import __version__
+        from neorg.web import system_info
+        sysinfo = system_info()
+        assert sysinfo['version'] == __version__
+        assert sysinfo['updated'].startswith('20')
+        assert sysinfo['updated'][:4].isdigit()
 
     def test_update_system_info_to_current(self):
         from neorg.web import update_system_info, system_info
