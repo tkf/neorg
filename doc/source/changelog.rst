@@ -4,6 +4,7 @@ ChangeLog
 v0.0.3
 ^^^^^^
 
+- Pages can be searched from the right top search box.
 - Use reversed :term:`page path` as a page title.
 
 v0.0.2

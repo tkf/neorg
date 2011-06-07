@@ -301,6 +301,41 @@ Examples of the template :term:`page path`:
 .. seealso:: :ref:`examples/template-page`
 
 
+Searching Pages
+===============
+
+NEOrg has Whoosh_ powered searching functionality.
+For the full description of the query language, see
+`The default query language --- Whoosh documentation`_.
+The following are quick examples:
+
+.. list-table:: Query examples
+   :header-rows: 1
+   :widths: 1 2
+
+   * - Query
+     - Meaning
+   * - ``alpha AND beta``
+     -
+   * - ``alpha beta``
+     - equivalent to ``alpha AND beta``
+   * - ``alpha NOT (beta OR gamma)``
+     -
+   * - ``page_path:MyPage``
+     - use :term:`page path` in the search query
+   * - ``page_path:(MyPage SubPage)``
+     - equivalent to ``page_path:MyPage page_path:SubPage``
+   * - ``te?t test* *b?g*``
+     - use :term:`unix shell-style pattern matching`
+   * - ``ninja^2 cowboy bear^0.5``
+     - importance: ninja = 2*cowboy = 4*bear
+
+
+.. _`The default query language --- Whoosh documentation`:
+   http://packages.python.org/Whoosh/querylang.html
+.. _Whoosh: https://bitbucket.org/mchaput/whoosh/wiki/Home
+
+
 Glossary
 ========
 
@@ -321,7 +356,7 @@ Glossary
        See `reStructuredText Directives`_ for more information and
        the basic directives defined by docutils.
 
-       NEOrg defines varikous special for displaying and organizing
+       NEOrg defines various special for displaying and organizing
        data effectively (see :ref:`special-directives`).
 
    page path
