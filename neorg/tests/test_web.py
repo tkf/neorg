@@ -14,6 +14,7 @@ import os
 import re
 import tempfile
 import shutil
+import urllib
 from nose.tools import raises, assert_raises
 
 from neorg import web
@@ -380,6 +381,58 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         assert ('(ERROR/3) Unknown target name: "nonexistent_target".'
                 in stderr)
         assert '<h1>Failed to generate HTML</h1>' in page_html
+
+    def get_search_response(self, query):
+        quoted = urllib.quote_plus(query)
+        return self.app.get('/_search?q={0}'.format(quoted))
+
+    @staticmethod
+    def assert_page_path_in_search_result(page_path, response):
+        page_path_link = '<h2><a href="/{0}">'.format(page_path)
+        assert page_path_link in response.data, \
+               "page_path '{0}' should be in the response"
+
+    def check_search_match(self, page_path, page_text, query):
+        self.check_save(page_path, page_text)
+        response = self.get_search_response(query)
+        self.assert_page_path_in_search_result(page_path, response)
+
+    @raises(AssertionError)
+    def check_search_no_match(self, page_path, page_text, query):
+        self.check_search_match(page_path, page_text, query)
+
+    def test_search(self):
+        num_test = 3
+        for ((page_path, page_text), query) in zip(
+            self.gene_pages('TestSearchMatch', num_test),
+            map('match{0} query{0}'.format, range(num_test))
+            ):
+            page_text = ' '.join([page_text, query])
+            yield (self.check_search_match,
+                   page_path, page_text, query)
+
+        for ((page_path, page_text), query) in zip(
+            self.gene_pages('TestSearchNoMatch', num_test),
+            map('match{0} query{0}'.format, range(num_test))
+            ):
+            yield (self.check_search_no_match,
+                   page_path, page_text, query)
+
+    def test_search_deleted(self):
+        query = 'some_long_string_to_test_search_deleted.'
+        page_path = 'TestSearchDeleted'
+        page_text = trim("""
+        This page will be deleted
+        -------------------------
+
+        {0}.
+        """.format(query))
+        self.check_search_match(page_path, page_text, query)
+        self.check_delete_yes(page_path, page_text)  # delete
+        response = self.get_search_response(query)
+        assert_raises(AssertionError,
+                      self.assert_page_path_in_search_result,
+                      page_path, response)  #no match
 
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):
