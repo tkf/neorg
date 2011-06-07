@@ -9,6 +9,7 @@ from flask import (Flask, request, g, redirect, url_for,
 import jinja2
 from neorg.config import DefaultConfig
 from neorg.wiki import gene_html, safecall
+from neorg import search
 
 
 def regex_from_temp_path(path):
@@ -211,6 +212,28 @@ def update_system_info():
             .format(oldver, curver))
 
 
+def get_search_index():
+    return search.get_index(app.config['SEARCHINDEX'])
+
+
+def update_search_index():
+    """
+    Update all search index or create new index.
+
+    .. warning::
+
+       Do NOT use this in app.
+       Call this function once just before `app.run`.
+
+    """
+    with closing(connect_db()) as db:
+        pages = db.execute('select * from pages').fetchall()
+    doc_list = [dict(
+        zip(('page_path', 'page_text'), doc)) for doc in pages]
+    ix = get_search_index()  # make new index if it does not exist
+    search.update_all(ix, doc_list)
+
+
 @app.before_request
 def before_request():
     """Make sure we are connected to the database each request."""
@@ -256,6 +279,7 @@ def delete(page_path):
             'values (?, ?, 0)',
             [page_path, ''])
         g.db.commit()
+        search.delete(get_search_index(), page_path)
         flash('Page "%s" was deleted.' % page_path)
         return redirect(url_for('page', page_path=''))
     elif request.form.get('no') == 'No':
@@ -277,16 +301,18 @@ def confirm_delete(page_path):
 @app.route('/<path:page_path>/_save', methods=['POST'])
 def save(page_path):
     if request.form.get('save') == 'Save':
-        if get_page_text(page_path) == request.form['page_text']:
+        page_text = request.form['page_text']
+        if get_page_text(page_path) == page_text:
             flash('No change was found.')
             return redirect(url_for("page", page_path=page_path))
         g.db.execute(
             'insert or replace into pages (page_path, page_text) values (?, ?)',
-            [page_path, request.form['page_text']])
+            [page_path, page_text])
         g.db.execute(
             'insert into page_history (page_path, page_text) values (?, ?)',
-            [page_path, request.form['page_text']])
+            [page_path, page_text])
         g.db.commit()
+        search.update(get_search_index(), page_path, page_text)
         flash('Saved!')
         return redirect(url_for("page", page_path=page_path))
     elif request.form.get('preview') == 'Preview':

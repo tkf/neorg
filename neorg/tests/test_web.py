@@ -17,7 +17,7 @@ import shutil
 from nose.tools import raises, assert_raises
 
 from neorg import web
-from neorg.config import DefaultConfig
+from neorg.config import DefaultConfig, set_config
 from neorg.tests.utils import trim, CaptureStdIO, ChangeNEOrgVersion
 
 TMP_PREFIX = 'neorg-tmp'
@@ -45,10 +45,13 @@ def urljoin(a, *p):
 def setup_app():
     web.app.config.from_object(DefaultConfig)
     (db_fd, web.app.config['DATABASE']) = tempfile.mkstemp(prefix=TMP_PREFIX)
-    web.app.config['DATADIRPATH'] = tempfile.mkdtemp(prefix=TMP_PREFIX)
+    dirpath = tempfile.mkdtemp(prefix=TMP_PREFIX)  # = NEORG_ROOT
+    set_config(web.app.config, dirpath)
+    os.mkdir(web.app.config['NEORG_DIR'])
     web.app.config['SECRET_KEY'] = 'key for testing'
     app = web.app.test_client()
     web.init_db()
+    web.update_search_index()
 
     from neorg.wiki import setup_wiki, gene_html
     setup_wiki()
@@ -61,7 +64,7 @@ def setup_app():
 
 def teardown_app():
     os.remove(web.app.config['DATABASE'])
-    shutil.rmtree(web.app.config['DATADIRPATH'])
+    shutil.rmtree(web.app.config['NEORG_ROOT'])
 
 
 class TestNEOrgWebSlow(object):

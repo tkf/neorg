@@ -6,6 +6,7 @@ class DefaultConfig(object):
     DEBUG = False
     DATABASE = '%(neorg)s/neorg.db'
     DATADIRPATH = '%(root)s'
+    SEARCHINDEX = '%(neorg)s/searchindex'
 
     # HELPDIRPATH = '%(neorg)s/help'
     # nerog reads help page from `static/help` if HELPDIRPATH is not
@@ -25,15 +26,25 @@ def confpath(dirpath):
     return os.path.join(dirpath, NEORG_HIDDEN_DIR, CONFIG_FILE)
 
 
-def magicwords(dirpath):
-    return {
-        'neorg': os.path.join(dirpath, NEORG_HIDDEN_DIR),
-        'root': dirpath,
-        }
-
-
 def expandall(path):
     return os.path.expandvars(os.path.expanduser(path))
+
+
+def expand_magic_words(config):
+    magic = {
+        'neorg': config['NEORG_DIR'],
+        'root': config['NEORG_ROOT'],
+        }
+    for key in ['DATABASE', 'DATADIRPATH', 'HELPDIRPATH', 'SEARCHINDEX']:
+        if key in config:
+            config[key] = expandall(config[key] % magic)
+
+
+def set_neorg_dir(config, dirpath):
+    config.update(
+        NEORG_ROOT=dirpath,
+        NEORG_DIR=os.path.join(dirpath, NEORG_HIDDEN_DIR),
+        )
 
 
 def load_config(app, dirpath=None):
@@ -41,13 +52,13 @@ def load_config(app, dirpath=None):
         dirpath = '.'
     dirpath = os.path.abspath(dirpath)
     app.config.from_pyfile(confpath(dirpath))
-    magic = magicwords(dirpath)
-    app.config['NEORG_ROOT'] = magic['root']
-    app.config['NEORG_DIR'] = magic['neorg']
-    app.config['DATADIRURL'] = '/_data'
-    for key in ['DATABASE', 'DATADIRPATH', 'HELPDIRPATH']:
-        if key in app.config:
-            app.config[key] = expandall(app.config[key] % magic)
+    set_config(app.config, dirpath)
+
+
+def set_config(config, dirpath):
+    set_neorg_dir(config, dirpath)
+    config['DATADIRURL'] = '/_data'
+    expand_magic_words(config)
 
 
 DEFAULT_CONFIG_FILE = """\
