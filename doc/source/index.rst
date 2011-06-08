@@ -508,7 +508,7 @@ markups.  For example, the following is not regraded as a link::
 
     /texsts_with_a_-hyphen-after-the-under_score/
 
-This is because ``texsts_with_a_`` is regraded as a hyper linke
+This is because ``texsts_with_a_`` is regraded as a hyper link
 target (and you will get a "Docutils Sysmtem Message" unexpectedly!).
 You should escape the "tailing" underscore ``_`` with a slash ``\``
 like this::

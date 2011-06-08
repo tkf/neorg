@@ -67,6 +67,8 @@ Links
 - `project page`_
 - document_
 - `issue tracking`_
+- You can see screenshots in
+  `my blog post <http://tkf.github.com/2011/06/04/neorg-0.0.1.html>`_.
 
 .. _`project page`: https://bitbucket.org/tkf/neorg/
 .. _document: http://tkf.bitbucket.org/neorg-doc/index.html
