@@ -397,6 +397,21 @@ class TestNEOrgWeb(TestNEOrgWebBase):
                       self.assert_page_path_in_search_result,
                       page_path, response)  #no match
 
+    def test_jump_to_descendants(self):
+        page_path = 'TestJumpToDesc/SubPage'
+        self.check_save(page_path, 'subpage exists')
+
+        # if sub-page(s) exists, show them
+        response = self.app.get('TestJumpToDesc/')
+        assert (response.location ==
+                "http://localhost/TestJumpToDesc/_descendants")
+
+        # if no sub-page exists, jump to the edit form
+        response = self.app.get('TestJumpToDesc/NoSubPage/')
+        assert (response.location ==
+                "http://localhost/TestJumpToDesc/NoSubPage/_edit")
+
+
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):
 

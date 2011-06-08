@@ -130,6 +130,10 @@ def find_descendants(path):
     return filter_descendants(path, path_list)
 
 
+def has_descendants(path):
+    return bool(find_descendants(path))
+
+
 def path_as_title(path):
     """
     Convert page path to a title
@@ -361,7 +365,13 @@ def page(page_path):
         if generated:
             return generated
         else:
-            return redirect(url_for('edit', page_path=page_path))
+            if has_descendants(page_path):
+                flash('Page {0} does not exist. Showing sub-pages.'
+                      .format(page_path))
+                return redirect(url_for('descendants',
+                                        page_path=page_path))
+            else:
+                return redirect(url_for('edit', page_path=page_path))
 
 
 _HTML_TEMP_GENE_TEXT_FAIL = """
