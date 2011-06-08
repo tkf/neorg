@@ -147,6 +147,51 @@ class dictdiff(nodes.General, nodes.Element):
     pass
 
 
+def _path_tree(path_list):
+    """
+    Convert list of path to tree
+    """
+    tree_dict = {}
+    for page_path in path_list:
+        sub_dict = tree_dict
+        for dir in page_path.split('/'):
+            if dir:
+                sub_dict = sub_dict.setdefault(dir, {})
+        if not page_path.endswith('/'):
+            page_path += '/'
+        sub_dict[None] = page_path  # leaf
+    return tree_dict
+
+
+def _gene_link_tree_from_tree_dict(tree_dict, parent_key=None,
+                                   bullet='*'):
+    link_tree = []
+    if None in tree_dict:
+        if parent_key is None:
+            parent_key = tree_dict[None]
+        link_tree.append(with_children(
+            nodes.paragraph,
+            gene_link(parent_key + '/', tree_dict[None])))
+    elif parent_key is not None:
+        link_tree.append(gene_paragraph(parent_key + '/'))
+
+    children = sorted(set(tree_dict) - set([None]))
+    if children:
+        bullet_list = nodes.bullet_list(bullet=bullet)
+        for key in children:
+            bullet_list += with_children(
+                nodes.list_item,
+                _gene_link_tree_from_tree_dict(
+                    tree_dict[key], key, bullet=bullet))
+        link_tree.append(bullet_list)
+    return link_tree
+
+
+def gene_link_tree(path_list, bullet='*'):
+    tree_dict = _path_tree(path_list)
+    return _gene_link_tree_from_tree_dict(tree_dict, bullet=bullet)
+
+
 class ProcessListPages(Transform):
     _web = None  # needs override
     default_priority = 0
@@ -160,7 +205,7 @@ class ProcessListPages(Transform):
                 title = 'List of Pages'
                 admonition = nodes.admonition()
                 admonition += nodes.title(title, title)
-                admonition += gene_link_list(page_list)
+                admonition += gene_link_tree(page_list)
                 node.replace_self(admonition)
 
 
@@ -329,7 +374,7 @@ def gene_table(list2d, title=None, colwidths=None, classes=[],
     return table
 
 
-def gene_link(uri):
+def gene_link(name, uri=None):
     """
     Generate link (a reference and a target)
 
@@ -343,11 +388,13 @@ def gene_link(uri):
     <BLANKLINE>
 
     """
-    reference = nodes.reference(uri, text=uri, name=uri, refuri=uri)
+    if uri is None:
+        uri = name
+    reference = nodes.reference(uri, text=name, name=name, refuri=uri)
     target = nodes.target(
         ids=[nodes.make_id(reference['name'])],
         names=[nodes.fully_normalize_name(reference['name'])],
-        refuri=reference['name'],
+        refuri=reference['refuri'],
         )
     return (reference, target)
 

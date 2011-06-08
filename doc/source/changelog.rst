@@ -5,6 +5,8 @@ v0.0.3
 ^^^^^^
 
 - Pages can be searched from the right top search box.
+- :rst:dir:`list-pages` shows sub-pages as a nested list, not as a
+  flat list.
 - Show sub-pages when the accessed page does not exist but at least
   one sub-page exists.
 - Use reversed :term:`page path` as a page title.
