@@ -131,6 +131,10 @@ table.neorg-gene-table {  /* generated table  */
     width: 100%;
 }
 
+.neorg-gene-table-rows-highlight {
+    background: #AAE2AA;
+}
+
 .neorg-grid-images-image {
     width: 100%;
 }

@@ -339,8 +339,9 @@ def gene_entry(node_or_any):
     return entry
 
 
-def gene_table(list2d, title=None, colwidths=None, classes=[],
-               _baseclass='neorg-gene-table'):
+def gene_table(list2d, title=None, colwidths=None, rows_highlight=[],
+               classes=[], _baseclass='neorg-gene-table',
+               rows_highlight_class='neorg-gene-table-rows-highlight'):
     """
     Generate table node from 2D list
     """
@@ -369,6 +370,10 @@ def gene_table(list2d, title=None, colwidths=None, classes=[],
 
     for (row, list1d) in zip(rows, list2d):
         row += [gene_entry(elem) for elem in list1d]
+
+    for (i, row) in enumerate(rows):
+        if i in rows_highlight:
+            row['classes'].append(rows_highlight_class)
 
     table['classes'] += allclasses
     return table
@@ -712,6 +717,7 @@ class TableDataAndImage(Directive):
         data_table = self._DictTable.from_path_list(data_syspath_list)
         if 'sort' in self.options:
             data_table.sort_names_by_values(self.options['sort'])
+        diffkeys = set(data_table.diff())
 
         rowdata = []
         for data_syspath in data_table.names:
@@ -723,9 +729,18 @@ class TableDataAndImage(Directive):
                 'path': parent_relpath,
                 'relpath': path.relpath(parent_syspath, base_syspath),
                 })
+            key_val_list = data_table.get_nested_fnmatch(
+                data_syspath, data_keys)
+            rows_highlight = [
+                i for (i, kv) in enumerate(key_val_list)
+                if kv[0] in diffkeys]
             subtable = gene_table(
-                data_table.get_nested_fnmatch(data_syspath, data_keys),
-                title=path.relpath(data_syspath, base_syspath))
+                key_val_list,
+                title=path.relpath(data_syspath, base_syspath),
+                rows_highlight=rows_highlight)
+            # subtable = gene_table(
+            #     data_table.get_nested_fnmatch(data_syspath, data_keys),
+            #     title=path.relpath(data_syspath, base_syspath))
             col0 = [subtable]
             if link is not None:
                 col0.append(gene_link_list(
