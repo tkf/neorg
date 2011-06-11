@@ -12,7 +12,7 @@ NEOrg commands
 
     usage: neorg [-h] {init,serve} ...
 
-    NEOrg - Numerical Simulation Organizer
+    NEOrg - Numerical Experiment Organizer
 
     positional arguments:
       {init,serve}

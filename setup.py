@@ -104,7 +104,7 @@ setup(
         'neorg': data_list,
         'neorg.tests': ['texts/*.txt'],
         },
-    description='NEOrg - Numerical Simulation Organizer',
+    description='NEOrg - Numerical Experiment Organizer',
     long_description=neorg.__doc__,
     author=neorg.__author__,
     author_email='aka.tkf@gmail.com',

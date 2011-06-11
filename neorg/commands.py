@@ -33,7 +33,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='NEOrg - Numerical Simulation Organizer')
+        description='NEOrg - Numerical Experiment Organizer')
     subparsers = parser.add_subparsers()
 
     # init

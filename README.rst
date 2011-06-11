@@ -1,4 +1,4 @@
-NEOrg - Numerical Simulation Organizer
+NEOrg - Numerical Experiment Organizer
 ======================================
 
 NEOrg is a wiki to organize your experimental data.
