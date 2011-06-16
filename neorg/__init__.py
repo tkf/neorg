@@ -51,7 +51,7 @@ Quick start
 Dependencies
 ------------
 
-- `docutils`, `Flask` and `argparse`
+- `docutils`, `Flask`, `Whoosh` and `argparse`
 - `PyYAML` to load YAML data (optional).
 
 For development:
