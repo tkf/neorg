@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # this script is used for testing the neorg package uploaded to pypi
 

@@ -132,5 +132,6 @@ setup(
         'docutils',
         'Flask',
         'argparse',
+        'Whoosh',
     ],
     )
