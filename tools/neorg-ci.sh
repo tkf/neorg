@@ -1,3 +1,5 @@
+#!/bin/sh
+
 python setup.py build
 nosetests --with-xunit
 touch nosetests.xml --date="$(date)"

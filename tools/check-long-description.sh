@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # checking long description which is embedded in __init__.py
 
 htmlpath=.long-description.html

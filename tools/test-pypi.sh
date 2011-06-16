@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # this script is used for testing the neorg package uploaded to pypi
 
 PYPITESTDIR='.pypitest'
