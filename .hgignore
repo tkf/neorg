@@ -4,3 +4,4 @@ neorg/static/help
 doc/source/_templates
 nosetests*.xml
 .pypitest
+.*.html
