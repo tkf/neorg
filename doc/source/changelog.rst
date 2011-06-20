@@ -1,6 +1,14 @@
 ChangeLog
 =========
 
+v0.0.4
+^^^^^^
+
+- Added `ftype-{pickle,python,yaml,json}` options to
+  :rst:dir:`table-data`, :rst:dir:`table-data-and-image` and
+  :rst:dir:`dictdiff` so that they can read the data files
+  with unsupported extensions.
+
 v0.0.3
 ^^^^^^
 

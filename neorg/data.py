@@ -1,5 +1,5 @@
 import re
-from fnmatch import fnmatchcase
+from fnmatch import fnmatchcase, fnmatch
 
 try:
     import cPickle as pickle
@@ -41,6 +41,26 @@ def load_any(path, ftype=None):
         return json.load(file(path))
     else:
         raise ValueError('data type of "%s" is not recognized' % path)
+
+
+def ftypes_match(path, ftypes):
+    """
+    Returns a key of which value in `ftypes` matches to `path`
+
+    >>> ftypes = {'py': ['*.py'], 'c': ['*.c', '*.h']}
+    >>> ftypes_match('path.py', ftypes)
+    'py'
+    >>> ftypes_match('path.h', ftypes)
+    'c'
+    >>> ftypes_match('unknown.spam', ftypes) is None
+    True
+
+    """
+    for (ft, ptn_list) in ftypes.iteritems():
+        for ptn in ptn_list:
+            if fnmatch(path, ptn):
+                return ft
+    return None
 
 
 def iteritemsdeep(dct):
@@ -426,12 +446,13 @@ class DictTable(object):
         print table.draw()
 
     @classmethod
-    def from_path_list(cls, path_list, name_list=None):
+    def from_path_list(cls, path_list, name_list=None, ftypes={}):
         name_list = path_list if name_list is None else name_list
         dt = cls()
         for (path, name) in zip(path_list, name_list):
+            ft = ftypes_match(path, ftypes)
             try:
-                dt.append(name, cls.load_any(path))
+                dt.append(name, cls.load_any(path, ft))
             except ValueError:
                 pass
         return dt

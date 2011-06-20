@@ -85,6 +85,19 @@ Show data in a table - :rst:dir:`table-data`
    trans : flag
        Transpose the table.
 
+   ftype-{TYPE} : text [, text]
+       A comma- or space-separated list of
+       :term:`unix shell-style pattern matching` to be matched the
+       path of data file where `{TYPE}` is a file type.
+       Currently supported file types are: `pickle`, `python`, `yaml`
+       and `json`.
+       This is used for loading data file with unusual extension, e.g.:
+
+       .. sourcecode:: rst
+
+           .. table-data:: */data.txt
+              :ftype-json: *.txt
+
    .. seealso:: :ref:`examples/table-data`
 
 
@@ -133,6 +146,10 @@ Show data and images in a table - :rst:dir:`table-data-and-image`
        A comma- or space-separated list of the :term:`dictionary path`.
        The table will be sorted by values of the keys.
 
+   ftype-{TYPE} : text [, text]
+       Load data file with unusual extension.
+       See :rst:dir:`table-data` for the details.
+
    .. seealso:: :ref:`examples/table-data-and-image`
 
 .. _`image directive`:
@@ -171,6 +188,10 @@ See the difference of data - :rst:dir:`dictdiff`
 
    trans : flag
        Transpose the table.
+
+   ftype-{TYPE} : text [, text]
+       Load data file with unusual extension.
+       See :rst:dir:`table-data` for the details.
 
    .. seealso:: :ref:`examples/dictdiff`
 

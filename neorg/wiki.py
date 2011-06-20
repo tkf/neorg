@@ -234,7 +234,9 @@ class ProcessDictDiff(Transform):
             glob_list_sorted)
         link = node.get('link', [])
 
-        data_table = self._DictTable.from_path_list(data_syspath_list)
+        ftypes = get_ftypes(node)
+        data_table = self._DictTable.from_path_list(data_syspath_list,
+                                                    ftypes=ftypes)
         if node.hasattr('sort'):
             data_table.sort_names_by_values(node.get('sort'))
 
@@ -580,6 +582,22 @@ def check_rowdata_and_widths(rowdata, colwidths, warning):
     return (messages, colwidths)
 
 
+_FTYPES = ['pickle', 'python', 'yaml', 'json']
+_FTYPE_OPTIONS = dict(
+    ('ftype-{0}'.format(ftype), parse_text_list)
+    for ftype in _FTYPES
+    )
+
+
+def get_ftypes(options):
+    fts = {}
+    for ftype in _FTYPES:
+        ftype_opt = 'ftype-{0}'.format(ftype)
+        if ftype_opt in options:
+            fts[ftype] = options[ftype_opt]
+    return fts
+
+
 class TableData(Directive):
     """
     Search data and show matched data and corresponding image(s)
@@ -599,6 +617,7 @@ class TableData(Directive):
                    'widths': directives.positive_int_list,
                    'path-order': choice_from('sort', 'sort_r'),
                    'trans': directives.flag}
+    option_spec.update(_FTYPE_OPTIONS)
     has_content = False
 
 
@@ -628,8 +647,10 @@ class TableData(Directive):
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
+        ftypes = get_ftypes(self.options)
         data_table = self._DictTable.from_path_list(data_syspath_list,
-                                                    from_base_list)
+                                                    from_base_list,
+                                                    ftypes=ftypes)
         data_table = data_table.filter_by_fnmatch(data_keys)
         rowdata = data_table.as_list()
         if link is not None:
@@ -684,6 +705,7 @@ class TableDataAndImage(Directive):
                    'sort': parse_text_list,
                    'widths': directives.positive_int_list}
     option_spec.update(_adapt_option_spec_from_image())
+    option_spec.update(_FTYPE_OPTIONS)
     has_content = False
 
 
@@ -714,7 +736,9 @@ class TableDataAndImage(Directive):
         colwidths = self.options.get('widths')
         link = self.options.get('link')
 
-        data_table = self._DictTable.from_path_list(data_syspath_list)
+        ftypes = get_ftypes(self.options)
+        data_table = self._DictTable.from_path_list(data_syspath_list,
+                                                    ftypes=ftypes)
         if 'sort' in self.options:
             data_table.sort_names_by_values(self.options['sort'])
         diffkeys = set(data_table.diff())
@@ -778,6 +802,7 @@ class DictDiff(Directive):
                    'sort': parse_text_list,
                    'path-order': choice_from('sort', 'sort_r'),
                    'trans': directives.flag}
+    option_spec.update(_FTYPE_OPTIONS)
     has_content = False
 
     def run(self):
