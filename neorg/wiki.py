@@ -830,9 +830,31 @@ class FindImages(Directive):
 
 
 def gene_table_from_grid_dict(grid_dict, param, conv, title=None, **kwds):
+    """
+    Generate a nested table from an instance of `GridDict`
+
+    Parameters
+    ----------
+    grid_dict : neorg.data.GridDict
+        generate a table from this.
+    param : list of string
+        list of the name of parameter to be used for the axes of
+        `grid_dict`.
+    conv : function (list -> nodes)
+        given a list (which is a value of the `grid_dict`), it
+        must return the docutils node or list of nodes.
+    title : string or None, optional
+        title for the table. this will be used only for the outmost
+        table.
+
+    Other keyword arguments (other than `colwidths` which will be
+    computed automatically) will be passed to `gene_table` function.
+
+    """
+    # compute `list2d`
     list2d = []
     len_axes = len(grid_dict.axes)
-    if len_axes > 1:
+    if len_axes > 1:  # two or more axes exist
         axes0 = sorted(grid_dict.axes[0])
         axes1 = sorted(grid_dict.axes[1])
         list2d.append(
@@ -845,25 +867,27 @@ def gene_table_from_grid_dict(grid_dict, param, conv, title=None, **kwds):
                                      classes=['neorg-grid-row'])]
             for y in axes1:
                 dct = grid_dict[x, y]
-                if len_axes == 2:
+                if len_axes == 2:  # a cell
                     elem = conv(dct)
-                else:
+                else:  # nested table
                     elem = gene_table_from_grid_dict(
                         dct, param[2:], conv, **kwds)
                 list1d.append(elem)
             list2d.append(list1d)
-    else:
+    else:  # only one axes exists -> generate 1d table
         axes0 = sorted(grid_dict.axes[0])
         list2d = [
             [gene_paragraph('%s=%s' % (param[0], x),
                             classes=['neorg-grid-row']),
              conv(grid_dict[x]),
              ] for x in axes0]
+    # compute `colwidths`
     if len(list2d) > 0 and len(list2d[0]) > 1:
         data_num = (len(list2d[0]) - 1)
         colwidths = [1] + [int(99.0 / data_num)] * data_num
     else:
         colwidths = None
+    # make a table
     return gene_table(list2d, title=title, colwidths=colwidths, **kwds)
 
 
