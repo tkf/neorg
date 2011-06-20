@@ -130,6 +130,20 @@ def find_descendants(path):
     return filter_descendants(path, path_list)
 
 
+def recent_pages(path, num):
+    """
+    Find the `num` most recently updated sub-pages of `path`
+    """
+    path_list = find_descendants(path)
+    date_list = [
+        g.db.execute(
+            "select max(updated) from page_history where page_path = ?",
+            [path]).fetchone()[0]
+        for path in path_list]
+    date_path_list = sorted(zip(date_list, path_list), reverse=True)[:num]
+    return date_path_list
+
+
 def has_descendants(path):
     return bool(find_descendants(path))
 

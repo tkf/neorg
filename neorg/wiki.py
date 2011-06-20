@@ -143,6 +143,10 @@ class list_pages(nodes.Admonition, nodes.Element):
     pass
 
 
+class recent_pages(nodes.Admonition, nodes.Element):
+    pass
+
+
 class dictdiff(nodes.General, nodes.Element):
     pass
 
@@ -206,6 +210,34 @@ class ProcessListPages(Transform):
                 admonition = nodes.admonition()
                 admonition += nodes.title(title, title)
                 admonition += gene_link_tree(page_list)
+                node.replace_self(admonition)
+
+
+class ProcessRecentPages(Transform):
+    _web = None  # needs override
+    default_priority = 0
+
+    def apply(self):
+        nodes_list_pages = list(self.document.traverse(recent_pages))
+        if nodes_list_pages:
+            page_path = self.document.settings.neorg_page_path
+            for node in nodes_list_pages:
+                date_page = self._web.recent_pages(page_path,
+                                                   node.get('num', 10))
+                title = 'Recently Updated Pages'
+                admonition = nodes.admonition()
+                admonition += nodes.title(title, title)
+                bullet_list = nodes.bullet_list(bullet='*')
+                bullet_list += [
+                    nodes.list_item(
+                        '',
+                        with_children(
+                            nodes.paragraph,
+                            [nodes.Text(u'{0}: '.format(d))] +
+                            list(gene_link(u'./{0}'.format(l)))
+                            ))
+                    for (d, l) in date_page]
+                admonition += bullet_list
                 node.replace_self(admonition)
 
 
@@ -284,6 +316,7 @@ class ProcessDictDiff(Transform):
 
 NEORG_TRANSFORMS = [
     AdHocInlineMarkup, ProcessListPages, ProcessDictDiff,
+    ProcessRecentPages,
     ]
 
 
@@ -986,9 +1019,17 @@ class ListPages(Directive):
         return [list_pages('')]
 
 
+class RecentPages(Directive):
+    _dirc_name = 'recent-pages'
+    option_spec = {'num': directives.positive_int}
+
+    def run(self):
+        return [recent_pages('', **self.options)]
+
+
 NEORG_DIRECTIVES = [
     TableData, TableDataAndImage, FindImages, ListPages, DictDiff,
-    GridImages,
+    GridImages, RecentPages,
     ]
 
 

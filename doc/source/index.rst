@@ -276,6 +276,17 @@ List Pages - :rst:dir:`list-pages`
    Insert list of sub-pages.
 
 
+Recently Update Sub-pages - :rst:dir:`recent-pages`
+---------------------------------------------------
+
+.. rst:directive:: .. recent-pages::
+
+   Insert list of recently update sub-pages.
+
+   num : int
+       Number of pages to show (default is 10).
+
+
 .. _template-page:
 
 Template page - ``_temp_``

@@ -8,6 +8,7 @@ v0.0.4
   :rst:dir:`table-data`, :rst:dir:`table-data-and-image` and
   :rst:dir:`dictdiff` so that they can read the data files
   with unsupported extensions.
+- Added :rst:dir:`recent-pages`.
 
 v0.0.3
 ^^^^^^
