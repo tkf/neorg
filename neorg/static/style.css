@@ -144,6 +144,7 @@ table.neorg-gene-table {  /* generated table  */
 }
 
 .neorg-grid-row {
+    white-space: nowrap;
     width: 1em;
      -moz-transform: rotate(-90deg);
        -o-transform: rotate(-90deg);
