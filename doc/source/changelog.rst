@@ -4,6 +4,7 @@ ChangeLog
 v0.0.4
 ^^^^^^
 
+- Added `link` option to :rst:dir:`grid-images`.
 - Added `file` option to :rst:dir:`table-data`,
   :rst:dir:`table-data-and-image`, :rst:dir:`dictdiff`,
   :rst:dir:`find-images`, and :rst:dir:`grid-images`.

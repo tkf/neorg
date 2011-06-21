@@ -281,6 +281,12 @@ Show effects of the parameter change - :rst:dir:`grid-images`
        The path is the relative path from the parent directory of
        the data file.
 
+   link : text
+       A URL to specify the link to a page related to the found data
+       file.  Note that unlike the `link` option of
+       :rst:dir:`table-data`, only one link is supported.
+       See :rst:dir:`table-data` for the details.
+
    .. seealso:: :ref:`examples/grid-images`
 
 

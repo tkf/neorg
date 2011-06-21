@@ -983,7 +983,8 @@ class GridImages(Directive):
     option_spec = {'param': parse_text_list,
                    'image': parse_text_list,
                    'base': directives.path,
-                   'file': directives.path}
+                   'file': directives.path,
+                   'link': directives.path}
     has_content = False
 
     def run(self):
@@ -1008,15 +1009,41 @@ class GridImages(Directive):
         data_table = self._DictTable.from_path_list(data_syspath_list)
         grid_dict = data_table.grid_dict(param)
 
+        def cellname(data_syspath):
+            from_base = path.relpath(data_syspath, base_syspath)
+            if 'file' in self.options:
+                return path.dirname(from_base)
+            else:
+                return from_base
+
+        if 'link' in self.options:
+            def celltitle(data_syspath):
+                data_relpath = path.relpath(data_syspath, datadir)
+                parent_relpath = path.dirname(data_relpath)
+                from_base = path.relpath(base_syspath, datadir)
+                link_magic = SafeMagic({
+                    'path': parent_relpath,
+                    'relpath': from_base,
+                    })
+                uri = link_magic(self.options['link'])
+                return with_children(
+                    nodes.paragraph,
+                    gene_link(cellname(data_syspath), uri))
+        else:
+            def celltitle(data_syspath):
+                return gene_paragraph(cellname(data_syspath))
+
         def images_from_data_syspath(data_syspath):
             data_relpath = path.relpath(data_syspath, datadir)
             parent_relpath = path.dirname(data_relpath)
             parent_absurl = path.join(datadirurl, parent_relpath)
 
-            return [
+            image_list = [
                 nodes.image(uri=path.join(parent_absurl, name),
                             classes=['neorg-grid-images-image'])
                 for (i, name) in enumerate(image_names)]
+
+            return [celltitle(data_syspath)] + image_list
 
         def conv(name_list):
             lst = []
