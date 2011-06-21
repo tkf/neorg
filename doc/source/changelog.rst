@@ -4,6 +4,9 @@ ChangeLog
 v0.0.4
 ^^^^^^
 
+- Added `file` option to :rst:dir:`table-data`,
+  :rst:dir:`table-data-and-image`, :rst:dir:`dictdiff`,
+  :rst:dir:`find-images`, and :rst:dir:`grid-images`.
 - Added `ftype-{pickle,python,yaml,json}` options to
   :rst:dir:`table-data`, :rst:dir:`table-data-and-image` and
   :rst:dir:`dictdiff` so that they can read the data files

@@ -261,8 +261,8 @@ class ProcessDictDiff(Transform):
         datadir = self._web.app.config['DATADIRPATH']
         base_syspath = path.join(datadir, node.get('base', ''))
         data_syspath_list = self._glob_list(
-            [path.join(base_syspath,
-                       directives.uri(arg)) for arg in arguments],
+            get_syspath_list(
+                arguments, base_syspath, node.get('file')),
             glob_list_sorted)
         link = node.get('link', [])
 
@@ -290,6 +290,8 @@ class ProcessDictDiff(Transform):
                 'relpath': path.relpath(parent_syspath, base_syspath),
                 })
             from_base = path.relpath(data_syspath, base_syspath)
+            if 'file' in node:
+                from_base = path.dirname(from_base)
             table_row = (
                 [from_base] +
                 [diff_data[keystr].get(data_syspath, '')
@@ -309,6 +311,7 @@ class ProcessDictDiff(Transform):
             title=title_from_path(
                 arguments,
                 node.get('base'),
+                node.get('file'),
                 'Diff of data found in: %s',
                 ))
         node.replace_self(table_node)
@@ -561,7 +564,14 @@ def glob_list(pathlist, sorted=sorted):
     return globed
 
 
-def title_from_path(pathlist, base=None, format='%s'):
+def get_syspath_list(path_list, base_syspath, filename=None):
+    syspath_list = [path.join(base_syspath, p) for p in path_list]
+    if filename is not None:
+        syspath_list = [path.join(p, filename) for p in syspath_list]
+    return syspath_list
+
+
+def title_from_path(pathlist, base=None, filename=None, format='%s'):
     """
     Format title string for searched path
 
@@ -571,6 +581,8 @@ def title_from_path(pathlist, base=None, format='%s'):
     '{one, two}'
     >>> title_from_path(['one', 'two'], base='with_base')
     'with_base/{one, two}'
+    >>> title_from_path(['one', 'two'], base='with_base', filename='file.txt')
+    'with_base/{one, two}/file.txt'
 
     """
     base = '' if base is None else base
@@ -581,6 +593,8 @@ def title_from_path(pathlist, base=None, format='%s'):
             base,
             '{%s}' % ', '.join(
                 [arg.strip(path.sep) for arg in pathlist]))
+    if filename:
+        pathstr = path.join(pathstr, filename)
     return format % pathstr
 
 
@@ -646,6 +660,7 @@ class TableData(Directive):
     final_argument_whitespace = True
     option_spec = {'data': parse_text_list,
                    'base': directives.path,
+                   'file': directives.path,
                    'link': parse_text_list,
                    'widths': directives.positive_int_list,
                    'path-order': choice_from('sort', 'sort_r'),
@@ -669,12 +684,13 @@ class TableData(Directive):
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         data_syspath_list = self._glob_list(
-            [path.join(base_syspath,
-                       directives.uri(arg))
-             for arg in self.arguments],
+            get_syspath_list(
+                self.arguments, base_syspath, self.options.get('file')),
             glob_list_sorted)
         from_base_list = [
             path.relpath(x, base_syspath) for x in data_syspath_list]
+        if 'file' in self.options:
+            from_base_list = map(path.dirname, from_base_list)
 
         data_keys = self.options.get('data', [])
         colwidths = self.options.get('widths')
@@ -713,6 +729,7 @@ class TableData(Directive):
                            title=title_from_path(
                                self.arguments,
                                self.options.get('base'),
+                               self.options.get('file'),
                                'Data found in: %s'),
                            colwidths=colwidths)] + messages
 
@@ -733,6 +750,7 @@ class TableDataAndImage(Directive):
     option_spec = {'data': parse_text_list,
                    'image': parse_text_list,
                    'base': directives.path,
+                   'file': directives.path,
                    'link': parse_text_list,
                    'path-order': choice_from('sort', 'sort_r'),
                    'sort': parse_text_list,
@@ -758,9 +776,8 @@ class TableDataAndImage(Directive):
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         data_syspath_list = self._glob_list(
-            [path.join(base_syspath,
-                       directives.uri(arg))
-             for arg in self.arguments],
+            get_syspath_list(
+                self.arguments, base_syspath, self.options.get('file')),
             glob_list_sorted)
 
         data_keys = self.options.get('data', [])
@@ -791,9 +808,12 @@ class TableDataAndImage(Directive):
             rows_highlight = [
                 i for (i, kv) in enumerate(key_val_list)
                 if kv[0] in diffkeys]
+            subtitle = path.relpath(data_syspath, base_syspath)
+            if 'file' in self.options:
+                subtitle = path.dirname(subtitle)
             subtable = gene_table(
                 key_val_list,
-                title=path.relpath(data_syspath, base_syspath),
+                title=subtitle,
                 rows_highlight=rows_highlight)
             # subtable = gene_table(
             #     data_table.get_nested_fnmatch(data_syspath, data_keys),
@@ -818,6 +838,7 @@ class TableDataAndImage(Directive):
                            title=title_from_path(
                                self.arguments,
                                self.options.get('base'),
+                               self.options.get('file'),
                                'Data found in: %s'),
                            colwidths=colwidths)] + messages
 
@@ -829,6 +850,7 @@ class DictDiff(Directive):
     optional_arguments = OPTIONAL_ARGUMENTS_INF
     final_argument_whitespace = True
     option_spec = {'base': directives.path,
+                   'file': directives.path,
                    'link': parse_text_list,
                    'include': parse_text_list,
                    'exclude': parse_text_list,
@@ -854,7 +876,8 @@ class FindImages(Directive):
     required_arguments = 1
     optional_arguments = OPTIONAL_ARGUMENTS_INF
     final_argument_whitespace = True
-    option_spec = {'base': directives.path}
+    option_spec = {'base': directives.path,
+                   'file': directives.path}
     has_content = False
 
     def run(self):
@@ -868,9 +891,8 @@ class FindImages(Directive):
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         image_syspath_list = self._glob_list(
-            [path.join(base_syspath,
-                       directives.uri(arg))
-             for arg in self.arguments])
+            get_syspath_list(
+                self.arguments, base_syspath, self.options.get('file')))
 
         def gene_image(relpath):
             image_node = nodes.image(
@@ -960,7 +982,8 @@ class GridImages(Directive):
     final_argument_whitespace = True
     option_spec = {'param': parse_text_list,
                    'image': parse_text_list,
-                   'base': directives.path}
+                   'base': directives.path,
+                   'file': directives.path}
     has_content = False
 
     def run(self):
@@ -980,8 +1003,8 @@ class GridImages(Directive):
         base_syspath = path.join(datadir,
                                  self.options.get('base', ''))
         data_syspath_list = self._glob_list(
-            [path.join(base_syspath, directives.uri(arg))
-             for arg in self.arguments])
+            get_syspath_list(
+                self.arguments, base_syspath, self.options.get('file')))
         data_table = self._DictTable.from_path_list(data_syspath_list)
         grid_dict = data_table.grid_dict(param)
 
@@ -1003,6 +1026,7 @@ class GridImages(Directive):
 
         title = title_from_path(self.arguments,
                                 self.options.get('base'),
+                                self.options.get('file'),
                                 'Comparing images of data found in: %s')
 
         return [gene_table_from_grid_dict(grid_dict,

@@ -38,8 +38,25 @@ Show data in a table - :rst:dir:`table-data`
                            2011-03-*/data.json
               :base: my/experiment
 
-       will search the files matches to
-       ``my/experiment/2011-02-*/data.json`` and
+       will search the files which match to
+       ``my/experiment/2011-02-*/data.json`` or
+       ``my/experiment/2011-03-*/data.json``.
+
+   file : string (newlines removed)
+       This is an optional parameter to specify the name of the
+       data file.  If the tailing parts of the arguments are the
+       you can specify it using this option.
+
+       For example,
+
+       .. sourcecode:: rst
+
+           .. table-data:: 2011-02-* 2011-03-*
+              :file: data.json
+              :base: my/experiment
+
+       will search the files which matche to
+       ``my/experiment/2011-02-*/data.json`` or
        ``my/experiment/2011-03-*/data.json``.
 
    data : text [, text, ...]
@@ -115,6 +132,11 @@ Show data and images in a table - :rst:dir:`table-data-and-image`
        where the data files are searched from.
        See :rst:dir:`table-data` for the details.
 
+   file : string (newlines removed)
+       Specifies the tailing part of the directory where the data
+       files are searched from.
+       See :rst:dir:`table-data` for the details.
+
    data : text [, text, ...]
        A comma- or space-separated list of the :term:`dictionary path`.
        See :rst:dir:`table-data` for the details.
@@ -168,6 +190,11 @@ See the difference of data - :rst:dir:`dictdiff`
    base : string (newlines removed)
        This is an optional parameter to specify the directory
        where the data files are searched from.
+       See :rst:dir:`table-data` for the details.
+
+   file : string (newlines removed)
+       Specifies the tailing part of the directory where the data
+       files are searched from.
        See :rst:dir:`table-data` for the details.
 
    link : text [, text]
@@ -240,6 +267,11 @@ Show effects of the parameter change - :rst:dir:`grid-images`
        where the data files are searched from.
        See :rst:dir:`table-data` for the details.
 
+   file : string (newlines removed)
+       Specifies the tailing part of the directory where the data
+       files are searched from.
+       See :rst:dir:`table-data` for the details.
+
    param : text [, text]
        A comma- or space-separated list of the :term:`dictionary path`
        for the axes of the grid.
@@ -265,6 +297,11 @@ Find images - :rst:dir:`find-images`
        where the data files are searched from.
        See :rst:dir:`table-data` for the details.
 
+   file : string (newlines removed)
+       Specifies the tailing part of the directory where the data
+       files are searched from.
+       See :rst:dir:`table-data` for the details.
+
    .. seealso:: :ref:`examples/find-images`
 
 
@@ -276,12 +313,12 @@ List Pages - :rst:dir:`list-pages`
    Insert list of sub-pages.
 
 
-Recently Update Sub-pages - :rst:dir:`recent-pages`
----------------------------------------------------
+Recently Updated Sub-pages - :rst:dir:`recent-pages`
+----------------------------------------------------
 
 .. rst:directive:: .. recent-pages::
 
-   Insert list of recently update sub-pages.
+   Insert list of recently updated sub-pages.
 
    num : int
        Number of pages to show (default is 10).
