@@ -362,6 +362,24 @@ def gene_paragraph(rawtext, classes=[]):
     return paragraph
 
 
+def gene_aimage(uri, classes=[], **kwds):
+    """
+    Generate image node with link (<a> + <img>)
+
+    This function is roughly equivalent to `image` directive
+    when the `target` option is same as its argument, i.e.::
+
+        .. image:: /path/to/image.png
+           :target: /path/to/image.png
+
+    """
+    reference_node = nodes.reference(
+        refuri=uri, classes=['neorg-gene-image-link'])
+    reference_node += nodes.image(
+        uri=uri, classes=['neorg-gene-image'] + classes, **kwds)
+    return reference_node
+
+
 def gene_entry(node_or_any):
     """
     Generate entry node from `node` or `[node, ...]` or anything.
@@ -824,7 +842,7 @@ class TableDataAndImage(Directive):
                     map(link_magic, link)))
                 ## link_magic.fails  # need to do something w/ fails
             images = [
-                nodes.image(uri=path.join(parent_absurl, name),
+                gene_aimage(path.join(parent_absurl, name),
                             **image_options.get(i, {}))
                 for (i, name) in enumerate(image_names)]
             rowdata.append([col0] + images)
@@ -895,9 +913,7 @@ class FindImages(Directive):
                 self.arguments, base_syspath, self.options.get('file')))
 
         def gene_image(relpath):
-            image_node = nodes.image(
-                rawsource='',
-                uri=path.join(datadirurl, relpath))
+            image_node = gene_aimage(path.join(datadirurl, relpath))
             image_node['classes'].append('neorg-find-images-image')
             return image_node
 
@@ -1039,7 +1055,7 @@ class GridImages(Directive):
             parent_absurl = path.join(datadirurl, parent_relpath)
 
             image_list = [
-                nodes.image(uri=path.join(parent_absurl, name),
+                gene_aimage(path.join(parent_absurl, name),
                             classes=['neorg-grid-images-image'])
                 for (i, name) in enumerate(image_names)]
 

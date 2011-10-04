@@ -89,9 +89,73 @@ class update_help(Command):
         ]
 
 
+class update_js(Command):
+    description = 'Download and extract javascripts to neorg/static/js'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    @staticmethod
+    def _saveurl(url, filepath):
+        from urllib2 import urlopen
+        if os.path.exists(filepath):
+            log.info("file '%s' already exists" % filepath)
+        else:
+            log.info("downloading '%s' -> '%s'" % (url, filepath))
+            file(filepath, 'wb').write(urlopen(url).read())
+
+    @classmethod
+    def _saveurl_and_extract_zip(cls, url, zippath, dirpath):
+        from zipfile import ZipFile
+        cls._saveurl(url, zippath)
+        zf = ZipFile(zippath)
+        zf.extractall(dirpath)
+
+    def run(self):
+        from distutils.dir_util import mkpath, copy_tree
+        from distutils.file_util import copy_file
+        tmpdir = os.path.join('build', 'jstmp')
+        jsdir = os.path.join('neorg', 'static', 'jslib')
+        colorboxdir = os.path.join(jsdir, 'colorbox')
+        jqtmppath = os.path.join(tmpdir, 'jquery-1.6.4.min.js')
+        cbjstmppath = os.path.join(
+            tmpdir, 'colorbox', 'colorbox', 'jquery.colorbox-min.js')
+        cbcsstmppath = os.path.join(
+            tmpdir, 'colorbox', 'example5', 'colorbox.css')
+        cbimgtmppath = os.path.join(
+            tmpdir, 'colorbox', 'example5', 'images')
+        cbimglibpath = os.path.join(colorboxdir, 'images')
+
+        if os.path.exists(jsdir):
+            shutil.rmtree(jsdir)
+            log.info("clear directory '%s'" % jsdir)
+        mkpath(colorboxdir)  # which is under jsdir
+
+        mkpath(tmpdir)
+        if os.path.exists(os.path.join(tmpdir, 'colorbox')):
+            shutil.rmtree(os.path.join(tmpdir, 'colorbox'))
+
+        self._saveurl(
+             'http://code.jquery.com/jquery-1.6.4.min.js', jqtmppath)
+        copy_file(jqtmppath, jsdir)
+
+        self._saveurl_and_extract_zip(
+            'http://colorpowered.com/colorbox/latest',
+            os.path.join(tmpdir, 'colorbox.zip'),
+            tmpdir)
+        copy_file(cbjstmppath, jsdir)
+        copy_file(cbcsstmppath, colorboxdir)
+        copy_tree(cbimgtmppath, cbimglibpath)
+
+
 cmdclass = {
     'build': my_build,
     'update_help': update_help,
+    'update_js': update_js,
     }
 if BUILD_SPHINX_AVAILABLE:
     cmdclass.update(build_sphinx=BuildDoc)

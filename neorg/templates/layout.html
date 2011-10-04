@@ -20,6 +20,11 @@
           href="{{ url_for('static', filename='style.css') }}" />
     <link rel="shortcut icon"
           href="{{ url_for('favicon') }}" />
+    <link rel="stylesheet type=text/css"
+          href="{{ url_for('static', filename='jslib/colorbox/colorbox.css') }}" />
+    <script src="{{ url_for('static', filename='jslib/jquery-1.6.4.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jslib/jquery.colorbox-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='neorg.js') }}"></script>
   </head>
   <body{% if temp_path %} class="gene"{% endif %}>
     <div class="page">

@@ -1,6 +1,7 @@
 syntax: glob
 build
 neorg/static/help
+neorg/static/jslib
 doc/source/_templates
 nosetests*.xml
 .pypitest
