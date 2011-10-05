@@ -47,7 +47,7 @@ $(document).ready(function() {
 });
 
 
-var arrowKeyArray = ['left', 'right', 'up', 'down']
+var arrowKeyArray = ['left', 'right', 'up', 'down'];
 
 var neorgCBSetting = {
     title: function() {

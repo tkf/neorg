@@ -17,9 +17,13 @@ current_version()  # make sure current version is a valid version
 
 data_list = ['schema.sql', 'templates/*.html'] + [
     os.path.join('%s' % d, '*.%s' % e)
-    for e in ['css', 'html', 'ico', 'inv', 'js', 'png', 'txt']
+    for e in ['css', 'html', 'ico', 'inv', 'js', 'png', 'gif', 'txt']
     for d in ['static', 'static/help',
-              'static/help/_source', 'static/help/_static',]]
+              'static/help/_source', 'static/help/_static',
+              'static/jslib/',
+              'static/jslib/colorbox',
+              'static/jslib/colorbox/images',
+              ]]
 
 
 def mkdir(path):
@@ -38,8 +42,9 @@ class my_build(build):
                      % help_source)
             return False
 
-    sub_commands = [  # run update_help before any other sub_commands
+    sub_commands = [  # run update_help/js before any other sub_commands
         ('update_help', has_help_doc),
+        ('update_js', None),  # always call update_js before build
         ] + build.sub_commands
 
 
