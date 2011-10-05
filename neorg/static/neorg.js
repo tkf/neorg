@@ -1,9 +1,3 @@
-function openFirstImageByColorBox() {
-    $.colorbox($.extend({}, neorgCBSetting, {
-        href: $('img.neorg-gene-image').first().attr('src')
-    }));
-}
-
 function neorgCBOpen(arrow) {
     var otd, oa;
     var ctd = $.colorbox.element().parent();
@@ -32,27 +26,18 @@ function neorgCBOpen(arrow) {
     }
 }
 
-function neorgCBOpenLeft() {
-    neorgCBOpen('left');
-}
-
-function neorgCBOpenRight() {
-    neorgCBOpen('right');
-}
-
-function neorgCBOpenUp() {
-    neorgCBOpen('up');
-}
-
-function neorgCBOpenDown() {
-    neorgCBOpen('down');
-}
-
 function bindKeydown(key, func) {
     $(document).bind('keydown.neorg.' + key, key, func);
 }
 
-function unBindKeydown(key, func) {
+function bindKeydownToNeorgCBOpen(key) {
+    bindKeydown(key, function(e) {
+        e.preventDefault();
+        neorgCBOpen(key);
+    });
+}
+
+function unBindKeydown(key) {
     $(document).unbind('keydown.neorg.' + key);
 }
 
@@ -61,6 +46,8 @@ $(document).ready(function() {
     $('.neorg-gene-image-link').colorbox(neorgCBSetting);
 });
 
+
+var arrowKeyArray = ['left', 'right', 'up', 'down']
 
 var neorgCBSetting = {
     title: function() {
@@ -73,16 +60,16 @@ var neorgCBSetting = {
     fixed: true,
     onOpen: function() {
         // alert('onOpen');
-        bindKeydown('left', neorgCBOpenLeft);
-        bindKeydown('right', neorgCBOpenRight);
-        bindKeydown('up', neorgCBOpenUp);
-        bindKeydown('down', neorgCBOpenDown);
+        var i;
+        for (i in arrowKeyArray) {
+            bindKeydownToNeorgCBOpen(arrowKeyArray[i]);
+        }
     },
     onClosed: function() {
         // alert('onClosed');
-        unBindKeydown('left');
-        unBindKeydown('right');
-        unBindKeydown('up');
-        unBindKeydown('down');
+        var i;
+        for (i in arrowKeyArray) {
+            unBindKeydown(arrowKeyArray[i]);
+        }
     }
 };
