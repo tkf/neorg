@@ -118,6 +118,7 @@ class update_js(Command):
     def run(self):
         from distutils.dir_util import mkpath, copy_tree
         from distutils.file_util import copy_file
+        from glob import glob
         tmpdir = os.path.join('build', 'jstmp')
         jsdir = os.path.join('neorg', 'static', 'jslib')
         colorboxdir = os.path.join(jsdir, 'colorbox')
@@ -129,6 +130,7 @@ class update_js(Command):
         cbimgtmppath = os.path.join(
             tmpdir, 'colorbox', 'example5', 'images')
         cbimglibpath = os.path.join(colorboxdir, 'images')
+        hktmpglobptn = os.path.join(tmpdir, 'tzuryby-jquery.hotkeys*/')
 
         if os.path.exists(jsdir):
             shutil.rmtree(jsdir)
@@ -138,6 +140,7 @@ class update_js(Command):
         mkpath(tmpdir)
         if os.path.exists(os.path.join(tmpdir, 'colorbox')):
             shutil.rmtree(os.path.join(tmpdir, 'colorbox'))
+        map(shutil.rmtree, glob(hktmpglobptn))
 
         self._saveurl(
              'http://code.jquery.com/jquery-1.6.4.min.js', jqtmppath)
@@ -150,6 +153,13 @@ class update_js(Command):
         copy_file(cbjstmppath, jsdir)
         copy_file(cbcsstmppath, colorboxdir)
         copy_tree(cbimgtmppath, cbimglibpath)
+
+        self._saveurl_and_extract_zip(
+            'https://github.com/tzuryby/jquery.hotkeys/zipball/master',
+            os.path.join(tmpdir, 'tzuryby-jquery.hotkeys.zip'),
+            tmpdir)
+        hktmpdir = glob(hktmpglobptn)[0]
+        copy_file(os.path.join(hktmpdir, 'jquery.hotkeys.js'), jsdir)
 
 
 cmdclass = {

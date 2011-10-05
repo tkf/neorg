@@ -1072,12 +1072,15 @@ class GridImages(Directive):
                                 self.options.get('file'),
                                 'Comparing images of data found in: %s')
 
-        return [gene_table_from_grid_dict(grid_dict,
-                                          param,
-                                          conv,
-                                          title,
-                                          classes=['neorg-grid-images'],
-                                          )]
+        table = gene_table_from_grid_dict(
+            grid_dict,
+            param,
+            conv,
+            title,
+            classes=['neorg-grid-images'],
+            )
+        table['classes'].append('neorg-grid-images-outmost')
+        return [table]
 
 class ListPages(Directive):
     _dirc_name = 'list-pages'
