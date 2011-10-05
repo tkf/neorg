@@ -60,6 +60,12 @@ For development:
 - `texttable` for doctest
 - `sphinx` for building document
 
+Javascript libraries (included):
+
+- `jQuery <http://jquery.com/>`_
+- `ColorBox <http://colorpowered.com/colorbox/>`_
+- `jquery.hotkeys <https://github.com/tzuryby/jquery.hotkeys>`_
+
 
 Links
 -----
