@@ -152,7 +152,7 @@ class update_js(Command):
         copy_file(jqtmppath, jsdir)
 
         self._saveurl_and_extract_zip(
-            'http://colorpowered.com/colorbox/latest',
+            'http://jacklmoore.com/colorbox/colorbox.zip',
             os.path.join(tmpdir, 'colorbox.zip'),
             tmpdir)
         copy_file(cbjstmppath, jsdir)
