@@ -4,9 +4,15 @@ ChangeLog
 v0.0.4
 ^^^^^^
 
-- Added image preview using modal window.  Preview of
-  :rst:dir:`grid-images` supports navigation using left/right/up/down
-  keys (this feature is working only with 2D grid).
+- Added image preview window.
+  Clicking image opens a modal window to show the image without page
+  transition.
+
+  - In preview window, navigation using left/right/up/down keys is
+    supported.
+  - This navigation does not work for 3D or more dimensional
+    :rst:dir:`grid-images`.
+
 - Added `link` option to :rst:dir:`grid-images`.
 - Added `file` option to :rst:dir:`table-data`,
   :rst:dir:`table-data-and-image`, :rst:dir:`dictdiff`,
