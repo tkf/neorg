@@ -913,8 +913,9 @@ class FindImages(Directive):
                 self.arguments, base_syspath, self.options.get('file')))
 
         def gene_image(relpath):
-            image_node = gene_aimage(path.join(datadirurl, relpath))
-            image_node['classes'].append('neorg-find-images-image')
+            image_node = gene_aimage(
+                path.join(datadirurl, relpath),
+                classes=['neorg-find-images-image'])
             return image_node
 
         node_list = []
