@@ -138,8 +138,8 @@ def recent_pages(path, num):
     date_list = [
         g.db.execute(
             "select max(updated) from page_history where page_path = ?",
-            [path]).fetchone()[0]
-        for path in path_list]
+            [os.path.join(path, subpath).rstrip('/')]).fetchone()[0]
+        for subpath in path_list]
     date_path_list = sorted(zip(date_list, path_list), reverse=True)[:num]
     return date_path_list
 
