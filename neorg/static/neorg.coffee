@@ -49,8 +49,20 @@ neorgCBSetting =
     for i of arrowKeyArray
       unBindKeydown arrowKeyArray[i]
 
+neorgEdit = ->
+  $("#edit-form").show()
+  $("#edit-form-textarea").focus()
+  return false
+
 neorgInit = ->
   $(".neorg-gene-image-link").colorbox neorgCBSetting
+
+  eform = $("#edit-form")
+  if eform
+    $("a.page-action-edit").click neorgEdit
+
+    if eform.is(":visible")
+      $("#edit-form-textarea").focus()
 
 
 # export functions as global function

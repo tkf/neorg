@@ -60,7 +60,8 @@
           {% if temp_path %}
           <a href="{{ url_for('edit', page_path=temp_path) }}">Edit Template</a>
           {% else %}
-          <a href="{{ url_for('edit', page_path=page_path) }}">Edit</a>
+          <a href="{{ url_for('edit', page_path=page_path) }}"
+	     class="page-action-edit">Edit</a>
           {% endif %}
         </div>
         <div style="clear: both;"> </div>
@@ -77,6 +78,9 @@
     </div>
   <script type='text/javascript'>
     neorgInit();
+    {% if hide_edit_form is defined and hide_edit_form -%}
+    $("#edit-form").hide();
+    {%- endif %}
   </script>
   </body>
 </html>

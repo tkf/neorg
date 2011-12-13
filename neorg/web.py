@@ -373,7 +373,9 @@ def page(page_path):
         return render_template("page.html",
                                title=path_as_title(page_path),
                                page_path=page_path,
-                               page_html=page_html)
+                               page_html=page_html,
+                               page_text=page_text if page_text else '',
+                               hide_edit_form=True)
     else:
         generated = gene_from_template(page_path)
         if generated:
@@ -385,6 +387,9 @@ def page(page_path):
                 return redirect(url_for('descendants',
                                         page_path=page_path))
             else:
+                flash('Page {0} does not exist and does not have sub-pages. '
+                      'You can add new contents.'
+                      .format(page_path))
                 return redirect(url_for('edit', page_path=page_path))
 
 
