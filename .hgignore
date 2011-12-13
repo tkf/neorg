@@ -1,5 +1,6 @@
 syntax: glob
 build
+neorg/static/*.js
 neorg/static/help
 neorg/static/jslib
 doc/source/_templates

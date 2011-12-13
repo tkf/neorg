@@ -44,7 +44,8 @@ class my_build(build):
 
     sub_commands = [  # run update_help/js before any other sub_commands
         ('update_help', has_help_doc),
-        ('update_js', None),  # always call update_js before build
+        ('download_js', None),  # always call download_js before build
+        ('compile_js', None),   # always call compile_js before build
         ] + build.sub_commands
 
 
@@ -94,7 +95,31 @@ class update_help(Command):
         ]
 
 
-class update_js(Command):
+class compile_js(Command):
+    description = 'Compile neorg.js'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+
+        commands = ['coffee', '--compile', os.path.join('neorg', 'static')]
+        commands_str = " ".join(commands)
+        log.info(commands_str)
+        proc = subprocess.Popen(
+            commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ret = proc.wait()
+        if ret != 0:
+            log.info(proc.stdout.read())
+            raise RuntimeError("Command '{0}' failed".format(commands_str))
+
+
+class download_js(Command):
     description = 'Download and extract javascripts to neorg/static/js'
     user_options = []
 
@@ -170,7 +195,8 @@ class update_js(Command):
 cmdclass = {
     'build': my_build,
     'update_help': update_help,
-    'update_js': update_js,
+    'download_js': download_js,
+    'compile_js': compile_js,
     }
 if BUILD_SPHINX_AVAILABLE:
     cmdclass.update(build_sphinx=BuildDoc)
