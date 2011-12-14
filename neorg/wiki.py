@@ -313,7 +313,8 @@ class ProcessDictDiff(Transform):
                 node.get('base'),
                 node.get('file'),
                 'Diff of data found in: %s',
-                ))
+                ),
+            classes=['neorg-dictdiff'])
         node.replace_self(table_node)
 
 

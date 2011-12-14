@@ -49,6 +49,18 @@ neorgCBSetting =
     for i of arrowKeyArray
       unBindKeydown arrowKeyArray[i]
 
+
+neorgDictDiffInit = ->
+  $("table.neorg-dictdiff").each ->
+    ncolsList = ($(e).find("td").length for e in $(this).find("tr"))
+    ncols = Math.max ncolsList...
+
+    for column in [1..ncols]
+      console.log column
+      console.log $(this).find("tr > td:nth-child(" + column + ")")[1..]
+        .heatcolor -> $(this).text()
+
+
 neorgEdit = ->
   $.ajax
     url: "_edit_form"
@@ -61,6 +73,8 @@ neorgEdit = ->
 
 neorgInit = ->
   $(".neorg-gene-image-link").colorbox neorgCBSetting
+
+  neorgDictDiffInit()
 
   $("a.page-action-edit").click neorgEdit
   $("#edit-form-textarea").focus()

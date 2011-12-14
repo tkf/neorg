@@ -161,6 +161,7 @@ class download_js(Command):
             tmpdir, 'colorbox', 'example5', 'images')
         cbimglibpath = os.path.join(colorboxdir, 'images')
         hktmpglobptn = os.path.join(tmpdir, 'tzuryby-jquery.hotkeys*/')
+        hctmppath = os.path.join(tmpdir, 'jquery.heatcolor.0.0.1.pack.js')
 
         if os.path.exists(jsdir):
             shutil.rmtree(jsdir)
@@ -190,6 +191,12 @@ class download_js(Command):
             tmpdir)
         hktmpdir = glob(hktmpglobptn)[0]
         copy_file(os.path.join(hktmpdir, 'jquery.hotkeys.js'), jsdir)
+
+        self._saveurl(
+            'http://www.jnathanson.com/blog/client/jquery/heatcolor/'
+            'jquery.heatcolor.0.0.1.pack.js',
+            hctmppath)
+        copy_file(hctmppath, jsdir)
 
 
 cmdclass = {
