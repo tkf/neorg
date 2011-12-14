@@ -1,3 +1,11 @@
 {% extends "page.html" %}
 {%- block title_prefix %}Edit - {% endblock -%}
 {%- block title_root -%}{{ "<root page>" }}{% endblock -%}
+{% block body %}
+  <div id="edit-form-wrapper">
+    {% include "edit_form.html" %}
+  </div>
+  <div>
+    {{ page_html|safe }}
+  </div>
+{% endblock %}

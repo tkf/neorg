@@ -356,13 +356,19 @@ def save(page_path):
 
 @app.route('/_edit', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_edit')
-def edit(page_path):
+def edit(page_path, template="edit.html"):
     (page_text, page_html) = get_page_text_and_html(page_path)
-    return render_template("edit.html",
+    return render_template(template,
                            title=path_as_title(page_path),
                            page_path=page_path,
                            page_html=page_html,
                            page_text=page_text if page_text else '')
+
+
+@app.route('/_edit_form', defaults={'page_path': ''})
+@app.route('/<path:page_path>/_edit_form')
+def edit_form(page_path):
+    return edit(page_path, template="edit_form.html")
 
 
 @app.route('/', defaults={'page_path': ''})
@@ -373,9 +379,7 @@ def page(page_path):
         return render_template("page.html",
                                title=path_as_title(page_path),
                                page_path=page_path,
-                               page_html=page_html,
-                               page_text=page_text if page_text else '',
-                               hide_edit_form=True)
+                               page_html=page_html)
     else:
         generated = gene_from_template(page_path)
         if generated:
