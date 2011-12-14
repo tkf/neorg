@@ -279,8 +279,9 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         response = self.app.get('/_help/index.html',
                                 follow_redirects=True)
         import neorg
-        title = 'NEOrg v%s documentation' % neorg.__version__
-        assert title in response.data
+        assert (  # depends on sphinx version?
+            'NEOrg v%s documentation' % neorg.__version__ in response.data or
+            'NEOrg %s documentation' % neorg.__version__ in response.data)
 
     def check_temp(self, base_path, page_text, num):
         assert num > 0
