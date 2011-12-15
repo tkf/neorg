@@ -82,7 +82,8 @@ neorgDictDiffInit = ->
 #### Dynamically load text area to edit current page
 #
 # This function will be invoked by clicking `a.page-action-edit`
-neorgEdit = ->
+neorgEdit = (e) ->
+  e.preventDefault()
   $("#edit-form-wrapper").html "<p>Loading...</p>"
   $.ajax
     url: "_edit_form"
@@ -90,7 +91,6 @@ neorgEdit = ->
       $("#edit-form-wrapper").html data
       $("#edit-form-textarea").focus()
       return
-  return false
 
 
 #### Initialize everything for a neorg page
