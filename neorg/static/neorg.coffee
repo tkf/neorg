@@ -62,6 +62,7 @@ neorgDictDiffInit = ->
 
 
 neorgEdit = ->
+  $("#edit-form-wrapper").html "<p>Loading...</p>"
   $.ajax
     url: "_edit_form"
     success: (data) ->
