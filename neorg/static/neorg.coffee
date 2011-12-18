@@ -1,6 +1,8 @@
 #### Open neighboring image
 #
-# The first argument `arrow` must be a string in `arrowKeyArray`.
+# Argument:
+#
+# + **`arrow`** (`string`) : one of `arrowKeyArray`
 neorgCBOpen = (arrow) ->
   ctd = $.colorbox.element().parent()
   if arrow == "left"
@@ -22,18 +24,14 @@ neorgCBOpen = (arrow) ->
   oa.click() if oa.length
 
 
-#### Helper function for `bindKeydownToNeorgCBOpen`
-bindKeydown = (key, func) ->
-  $(document).bind "keydown.neorg." + key, key, func
-
-
 #### Bind arrow keys using [jquery.hotkeys]
 #
 # [jquery.hotkeys]: https://github.com/tzuryby/jquery.hotkeys/
 bindKeydownToNeorgCBOpen = (key) ->
-  bindKeydown key, (e) ->
-    e.preventDefault()
-    neorgCBOpen key
+  $(document).bind "keydown.neorg." + key, key, (e) ->
+      e.preventDefault()
+      neorgCBOpen key
+      return
 
 
 #### Unbind arrow keys; called via colorbox's `onClosed`
@@ -105,7 +103,7 @@ neorgEdit = (e) ->
 #
 # Argument:
 #
-# * `buttons` (`[string]`, _optional_) :
+# + **`buttons`** (`[string]`, _optional_) :
 #   "`#edit-form-STR`" (where `STR` is an element in the list)
 #   must be an ID of the input element in the edit form.
 neorgTextAreaInit = (buttons = ["preview"]) ->
