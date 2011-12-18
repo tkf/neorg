@@ -90,7 +90,34 @@ neorgEdit = (e) ->
     success: (data) ->
       $("#edit-form-wrapper").html data
       $("#edit-form-textarea").focus()
+      # Call `neorgTextAreaInit` to disable buttons until the text is
+      # changed.  Here, `"save"` is in the button list because
+      # dynamically loaded text is not needed to be saved unless it is
+      # changed.
+      neorgTextAreaInit ["save", "preview"]
       return
+
+
+#### Initialize #edit-form-textarea
+#
+# When the textarea is not changed, buttons specified in `buttons`
+# will be disabled.
+#
+# Argument:
+#
+# * `buttons` (`[string]`, _optional_) :
+#   "`#edit-form-STR`" (where `STR` is an element in the list)
+#   must be an ID of the input element in the edit form.
+neorgTextAreaInit = (buttons = ["preview"]) ->
+  btnList = ($("#edit-form-#{n}") for n in buttons)
+  original = $("#edit-form-textarea").val()
+  watchTextarea = ->
+    if original == $("#edit-form-textarea").val()
+      $(b).attr("disabled", true) for b in btnList
+    else
+      $(b).attr("disabled", false) for b in btnList
+  $("#edit-form-textarea").keyup watchTextarea
+  watchTextarea()
 
 
 #### Initialize everything for a neorg page
@@ -101,6 +128,7 @@ neorgInit = ->
   neorgDictDiffInit()
 
   $("a.page-action-edit").click neorgEdit
+  neorgTextAreaInit() if $("#edit-form-textarea")
   $("#edit-form-textarea").focus()
 
 
