@@ -357,9 +357,9 @@ def save(page_path):
 
 @app.route('/_edit', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_edit')
-def edit(page_path, template="edit.html"):
+def edit(page_path):
     (page_text, page_html) = get_page_text_and_html(page_path)
-    return render_template(template,
+    return render_template("edit.html",
                            title=path_as_title(page_path),
                            page_path=page_path,
                            page_html=page_html,
@@ -369,7 +369,10 @@ def edit(page_path, template="edit.html"):
 @app.route('/_edit_form', defaults={'page_path': ''})
 @app.route('/<path:page_path>/_edit_form')
 def edit_form(page_path):
-    return edit(page_path, template="edit_form.html")
+    page_text = get_page_text(page_path)
+    return render_template("edit_form.html",
+                           page_path=page_path,
+                           page_text=page_text if page_text else '')
 
 
 @app.route('/', defaults={'page_path': ''})
