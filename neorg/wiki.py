@@ -272,8 +272,8 @@ class ProcessDictDiff(Transform):
         if node.hasattr('sort'):
             data_table.sort_names_by_values(node.get('sort'))
 
-        diff_data =  data_table.diff(include=node.get('include'),
-                                     exclude=node.get('exclude'))
+        diff_data = data_table.diff(include=node.get('include'),
+                                    exclude=node.get('exclude'))
 
         keylist = sorted(diff_data)
         table_header = [''] + keylist
@@ -687,7 +687,6 @@ class TableData(Directive):
     option_spec.update(_FTYPE_OPTIONS)
     has_content = False
 
-
     def run(self):
         # naming note:
         #     - *_syspath is system path
@@ -777,7 +776,6 @@ class TableDataAndImage(Directive):
     option_spec.update(_adapt_option_spec_from_image())
     option_spec.update(_FTYPE_OPTIONS)
     has_content = False
-
 
     def run(self):
         # naming note:
@@ -1083,6 +1081,7 @@ class GridImages(Directive):
             )
         table['classes'].append('neorg-grid-images-outmost')
         return [table]
+
 
 class ListPages(Directive):
     _dirc_name = 'list-pages'

@@ -231,7 +231,7 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering",
         ],
-    entry_points = {
+    entry_points={
         'console_scripts': ['neorg = neorg.commands:main']},
     command_options={
         'build_sphinx': {  # specify the help document

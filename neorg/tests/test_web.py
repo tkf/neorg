@@ -37,7 +37,7 @@ def urljoin(a, *p):
         if b.startswith('/'):
             path = b
         elif path == '' or path.endswith('/'):
-            path +=  b
+            path += b
         else:
             path += '/' + b
     return path
@@ -176,7 +176,8 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         assert page_html in response.data
         delete_path = urljoin('/', page_path, "_delete")
         assert '<form action="%s"' % delete_path in response.data
-        assert '<input type="submit" name="yes" value="Yes" />' in response.data
+        assert ('<input type="submit" name="yes" value="Yes" />'
+                in response.data)
         assert '<input type="submit" name="no" value="No" />' in response.data
 
     def test_confirm_delete(self):
@@ -256,7 +257,7 @@ class TestNEOrgWeb(TestNEOrgWebBase):
 
     def check_old(self, page_path, page_text, num_update=5):
         (hist_response, page_text_history,
-         )= self.check_history(page_path, page_text, num_update)
+         ) = self.check_history(page_path, page_text, num_update)
         old_links = re.findall('<a href="(.*_old/[0-9]*)">',
                                hist_response.data)
         assert len(page_text_history) == len(old_links)
@@ -396,7 +397,7 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         response = self.get_search_response(query)
         assert_raises(AssertionError,
                       self.assert_page_path_in_search_result,
-                      page_path, response)  #no match
+                      page_path, response)  # no match
 
     def test_jump_to_descendants(self):
         page_path = 'TestJumpToDesc/SubPage'
@@ -411,7 +412,6 @@ class TestNEOrgWeb(TestNEOrgWebBase):
         response = self.app.get('TestJumpToDesc/NoSubPage/')
         assert (response.location ==
                 "http://localhost/TestJumpToDesc/NoSubPage/_edit")
-
 
 
 class TestNEOrgWebWithEmptyDB(TestNEOrgWebSlow):

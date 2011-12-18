@@ -114,7 +114,6 @@ class TestDictTableFilterByFnmatch(CheckData):
         assert_eq(dt_desired=dt_desired, dt_filtered=dt_filtered)
 
 
-
 class CheckGridDict(CheckData):
 
     @staticmethod
@@ -154,7 +153,7 @@ class TestGridDictGetItem(CheckGridDict):
         for key in product(*gd.axes):
             vals = [v for (k, v) in key_val if k == key]
             assert gd[key] == vals
-            expr  = 'gd[key] == gd[%s]' % ']['.join(map(repr, key))
+            expr = 'gd[key] == gd[%s]' % ']['.join(map(repr, key))
             assert eval(expr, {'gd': gd, 'key': key})
 
 

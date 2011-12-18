@@ -324,7 +324,8 @@ def save(page_path):
             flash('No change was found.')
             return redirect(url_for("page", page_path=page_path))
         g.db.execute(
-            'insert or replace into pages (page_path, page_text) values (?, ?)',
+            'insert or replace into pages (page_path, page_text)'
+            ' values (?, ?)',
             [page_path, page_text])
         g.db.execute(
             'insert into page_history (page_path, page_text) values (?, ?)',

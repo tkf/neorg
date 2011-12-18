@@ -168,7 +168,7 @@ class TestTableData(CheckData):
 
     data = [
         ({'args': ['ex/data*/file.pickle'],
-          'data': 'a b',},
+          'data': 'a b'},
          data_file_tree_1,
          []),
         ({'args': ['data*/file.pickle'],
@@ -253,7 +253,7 @@ class TestTableDataAndImage(CheckData):
 
     data = [
         ({'args': ['ex/data*/file.pickle'],
-          'data': 'a b',},
+          'data': 'a b'},
          data_file_tree_1,
          []),
         ({'args': ['data*/file.pickle'],
@@ -432,7 +432,6 @@ class TestDictDiff(CheckData):
             assert 'link(s)' not in page_html
 
 
-
 class TestGridImages(CheckData):
 
     data_file_tree_1 = dict(
@@ -487,7 +486,6 @@ class TestGridImages(CheckData):
         for (key, val) in stats.iteritems():
             eq_(page_html.count(key), val,
                 "page_html must contains %d of '%s'" % (val, key))
-
 
 
 class TestConvTexts(CheckData):

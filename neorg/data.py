@@ -230,6 +230,7 @@ class DictTable(object):
         Make new DictTable filtered by fnmatch given fnmatch patterns
         """
         newdt = DictTable()
+
         def filtered(name):
             return self._gene_dict(
                 self.get_nested_fnmatch(name, key_list, *args, **kwds))
@@ -279,6 +280,7 @@ class DictTable(object):
         # use last ASCII character to say deficit value should come at last.
         # maybe i should change this later using the `cmp` function.
         deficit = chr(255)
+
         def key(name):
             vals = []
             for keystr in key_list:
@@ -319,8 +321,6 @@ class DictTable(object):
         """
         # use repr(val) because val can be "unhashable type" such as list
         return len(set([repr(val) for val in iterative])) == 1
-
-
 
     @staticmethod
     def _filter_by_re_list(keyiter, include=None, exclude=None):
@@ -430,10 +430,14 @@ class DictTable(object):
         from texttable import Texttable
         table = Texttable()
         deco = 0
-        if deco_border: deco |= Texttable.BORDER
-        if deco_header: deco |= Texttable.HEADER
-        if deco_hlines: deco |= Texttable.HLINES
-        if deco_vlines: deco |= Texttable.VLINES
+        if deco_border:
+            deco |= Texttable.BORDER
+        if deco_header:
+            deco |= Texttable.HEADER
+        if deco_hlines:
+            deco |= Texttable.HLINES
+        if deco_vlines:
+            deco |= Texttable.VLINES
         table.set_deco(deco)
 
         sortedkey = sorted(diffdict)
@@ -523,7 +527,6 @@ def _nested_fnmatch(subdct, keylist):
         if fnmatchcase(str(key_cand), key_pat):
             for (k0, v0) in _nested_fnmatch(subdct[key_cand], key_rest):
                 yield ([key_cand] + k0, v0)
-
 
 
 def get_nested_fnmatch(dct, dictpath, sep='.'):

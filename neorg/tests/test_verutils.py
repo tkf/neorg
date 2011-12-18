@@ -21,9 +21,9 @@ def test_version_compare():
             assert (
                 NEOrgVersion('{0}.{1}.{2}'.format(i, j, k)) ==
                 NEOrgVersion('{0}.{1}.{2}'.format(i, j, k)))
-            for ijk0 in [(i-1, j, k),
-                         (i, j-1, k),
-                         (i, j, k-1)]:
+            for ijk0 in [(i - 1, j, k),
+                         (i, j - 1, k),
+                         (i, j, k - 1)]:
                 assert (
                     NEOrgVersion('{0}.{1}.{2}'.format(i, j, k)) >
                     NEOrgVersion('{0}.{1}.{2}'.format(*ijk0)))
@@ -33,10 +33,10 @@ def test_version_compare():
         assert (
             NEOrgVersion('{0}.{1}.{2}.dev{3}'.format(i, j, k, l)) ==
             NEOrgVersion('{0}.{1}.{2}.dev{3}'.format(i, j, k, l)))
-        for ijkl0 in [(i-1, j, k, l),
-                      (i, j-1, k, l),
-                      (i, j, k-1, l),
-                      (i, j, k, l-1)]:
+        for ijkl0 in [(i - 1, j, k, l),
+                      (i, j - 1, k, l),
+                      (i, j, k - 1, l),
+                      (i, j, k, l - 1)]:
             assert (
                 NEOrgVersion('{0}.{1}.{2}.dev{3}'.format(i, j, k, l)) >
                 NEOrgVersion('{0}.{1}.{2}.dev{3}'.format(*ijkl0)))
