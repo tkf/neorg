@@ -126,7 +126,7 @@ neorgInit = ->
   neorgDictDiffInit()
 
   $("a.page-action-edit").click neorgEdit
-  neorgTextAreaInit() if $("#edit-form-textarea")
+  neorgTextAreaInit() if $("#edit-form-textarea").length > 0
   $("#edit-form-textarea").focus()
 
 
