@@ -92,21 +92,27 @@ neorgEdit = (e) ->
       # changed.  Here, `"save"` is in the button list because
       # dynamically loaded text is not needed to be saved unless it is
       # changed.
-      neorgTextAreaInit ["save", "preview"]
+      neorgTextAreaInit ["save", "preview"], true
       return
 
 
 #### Initialize #edit-form-textarea
 #
-# When the textarea is not changed, buttons specified in `buttons`
-# will be disabled.
+# This function activates some functionality for the text area:
+#
+# + When the textarea is not changed, buttons specified in `buttons`
+#   will be disabled.
+# + Ask user if he/she wants to leave the page if the text is
+#   changed.
 #
 # Argument:
 #
 # + **`buttons`** (`[string]`, _optional_) :
 #   "`#edit-form-STR`" (where `STR` is an element in the list)
 #   must be an ID of the input element in the edit form.
-neorgTextAreaInit = (buttons = ["preview"]) ->
+# + **`saved`** (`bool`, _optional_) :
+#   pass `false` to it if the text is not saved in the DB
+neorgTextAreaInit = (buttons = ["preview"], saved = false) ->
   btnList = ($("#edit-form-#{n}") for n in buttons)
   original = $("#edit-form-textarea").val()
   watchTextarea = ->
@@ -116,6 +122,19 @@ neorgTextAreaInit = (buttons = ["preview"]) ->
       $(b).attr("disabled", false) for b in btnList
   $("#edit-form-textarea").keyup watchTextarea
   watchTextarea()
+
+  editFormSubmitted = false
+  $("#edit-form").bind "submit", (e) ->
+    editFormSubmitted = true
+
+  shouldNotUnload = ->
+    not editFormSubmitted \
+      and (not saved or original != $("#edit-form-textarea").val())
+
+  $(window).bind "beforeunload", ->
+    if shouldNotUnload()
+      return "You will loose unsaved changes."
+  return
 
 
 #### Initialize everything for a neorg page
