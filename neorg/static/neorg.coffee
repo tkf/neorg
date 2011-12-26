@@ -72,9 +72,9 @@ neorgDictDiffInit = ->
     ncols = Math.max ncolsList...
 
     for column in [1..ncols]
-      console.log column
-      console.log $(this).find("tr > td:nth-child(" + column + ")")[1..]
+      $(this).find("tr > td:nth-child(" + column + ")")[1..]
         .heatcolor -> $(this).text()
+    return
 
 
 #### Dynamically load text area to edit current page
