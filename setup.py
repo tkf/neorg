@@ -220,7 +220,7 @@ setup(
     long_description=neorg.__doc__,
     author=neorg.__author__,
     author_email='aka.tkf@gmail.com',
-    url='https://bitbucket.org/tkf/neorg',
+    url='https://github.com/tkf/neorg',
     keywords='numerical simulation, research',
     license=neorg.__license__,
     classifiers=[
