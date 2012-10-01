@@ -29,13 +29,10 @@ Install
     easy_isntall neorg
 
 
-If you want to try newest (possibly unstable) version you can
-install from https://bitbucket.org/tkf/neorg.
-Sphinx will be required::
+If you want to try the newest (possibly unstable) version, you can
+install it from https://github.com/tkf/neorg.::
 
-    pip install https://bitbucket.org/tkf/neorg/get/tip.tar.bz2  # or
-    pip install https://bitbucket.org/tkf/neorg/get/tip.tar.gz  # or
-    pip install https://bitbucket.org/tkf/neorg/get/tip.zip
+    pip install -e git://github.com/tkf/neorg.git#egg=neorg
 
 
 Quick start
@@ -77,11 +74,10 @@ Links
 - You can see screenshots in
   `my blog post <http://tkf.github.com/2011/06/04/neorg-0.0.1.html>`_.
 
-.. _`project page`: https://bitbucket.org/tkf/neorg/
+.. _`project page`: https://github.com/tkf/neorg
 .. _document: http://tkf.bitbucket.org/neorg-doc/index.html
-.. _`issue tracking`: https://bitbucket.org/tkf/neorg/issues
+.. _`issue tracking`: https://github.com/tkf/neorg/issues
 .. _`change log`: http://tkf.bitbucket.org/neorg-doc/changelog.html
-
 
 """
 # [[[end]]]
