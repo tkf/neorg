@@ -7,7 +7,6 @@ before_install:
   - sudo apt-get install coffeescript
   - coffee --version
 script:
-  - python setup.py build  # build sphinx document etc.
   - tox
 env:
   - NEORG_FASTTEST=
