@@ -1,4 +1,4 @@
-# [[[cog import cog; cog.outl('"""\n%s\n"""' % file('../README.rst').read()) ]]]
+# [[[cog import cog; cog.outl('"""\n%s\n"""' % file('../README.rst').read())]]]
 """
 NEOrg - Numerical Experiment Organizer
 ======================================
@@ -82,7 +82,7 @@ Links
 """
 # [[[end]]]
 
-__author__  = "Takafumi Arakaki"
+__author__ = "Takafumi Arakaki"
 __version__ = "0.0.4.dev0"
 __license__ = "MIT License"
 
