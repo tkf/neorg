@@ -1,0 +1,8 @@
+build
+neorg/static/*.js
+neorg/static/help
+neorg/static/jslib
+doc/source/_templates
+nosetests*.xml
+.pypitest
+.*.html
