@@ -75,9 +75,9 @@ Links
   `my blog post <http://tkf.github.com/2011/06/04/neorg-0.0.1.html>`_.
 
 .. _`project page`: https://github.com/tkf/neorg
-.. _document: http://tkf.bitbucket.org/neorg-doc/index.html
+.. _document: https://neorg.readthedocs.org/
 .. _`issue tracking`: https://github.com/tkf/neorg/issues
-.. _`change log`: http://tkf.bitbucket.org/neorg-doc/changelog.html
+.. _`change log`: http://neorg.readthedocs.org/en/latest/changelog.html
 
 """
 # [[[end]]]
