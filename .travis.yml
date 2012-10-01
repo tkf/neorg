@@ -2,7 +2,8 @@ language: python
 before_install:
   pip install --quiet tox sphinx
 script:
-  tox
+  - python setup.py build  # build sphinx document etc.
+  - tox
 env:
   - NEORG_FASTTEST=
   - NEORG_FASTTEST=t
